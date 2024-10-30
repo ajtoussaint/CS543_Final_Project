@@ -7,6 +7,7 @@ import Root from './components/Root';
 import OtherPage from './components/OtherPage';
 import Subpage1 from './components/Subpage1';
 import Subpage2 from './components/Subpage2';
+import './index.css';
 
 function App() {
   const router = createBrowserRouter(
