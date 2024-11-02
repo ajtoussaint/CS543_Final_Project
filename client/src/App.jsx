@@ -8,6 +8,7 @@ import Header from './components/Header';
 import OtherPage from './components/OtherPage';
 import Subpage1 from './components/Subpage1';
 import Subpage2 from './components/Subpage2';
+import Signup  from './components/Signup';
 import './index.css';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
                   <Route index element={<Subpage1/>} />
                   <Route path="2" element={<Subpage2/>} />
                 </Route>
+                <Route path="/signup" element={<Signup />} />
               </Route>
             </Routes>
           </>
