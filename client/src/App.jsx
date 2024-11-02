@@ -4,6 +4,7 @@ import {createBrowserRouter, RouterProvider, Route, Routes, createRoutesFromElem
 
 //components
 import Root from './components/Root';
+import Header from './components/Header';
 import OtherPage from './components/OtherPage';
 import Subpage1 from './components/Subpage1';
 import Subpage2 from './components/Subpage2';
@@ -17,11 +18,13 @@ function App() {
         element={(
           <>
             <Routes>
-              <Route path="otherPage" element={<OtherPage />}>
-                <Route index element={<Subpage1/>} />
-                <Route path="2" element={<Subpage2/>} />
+              <Route path="/" element={<Header/>}>
+                <Route index element={<Root />} />
+                <Route path="otherPage" element={<OtherPage />}>
+                  <Route index element={<Subpage1/>} />
+                  <Route path="2" element={<Subpage2/>} />
+                </Route>
               </Route>
-              <Route index element={<Root />} />
             </Routes>
           </>
         )}
