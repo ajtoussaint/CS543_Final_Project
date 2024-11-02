@@ -1,7 +1,4 @@
-//default styles and image
-import logo from '../logo.svg';
-import '../App.css';
-
+// Remove unused imports
 import React, { useState, useEffect } from 'react';
 import axiosInstance from "../modules/axiosInstance";
 
@@ -15,35 +12,26 @@ const Root = () => {
             const res = await axiosInstance.get("data");
             console.log(res.data);
             setMessage(res.data.name);
-          }catch (err){
+          } catch (err) {
             console.error("Error fetching message: ", err);
           }
         }
     
         fetchMessage();
-      }, []);
+    }, []);
 
-      return (
-        <div className="App">
-          <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
-            <p>
-              Edit <code>src/App.js</code> and save to reload.
+    return (
+        <div className="flex items-center justify-center h-screen bg-gray-100">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              Current Users:
+            </h2>
+            <p className="text-2xl font-semibold text-gray-700">
+              {message}
             </p>
-            <p>
-              If this says the name of the user you inserted in the database then the client, server, and database all connect: {message}
-            </p>
-            <a
-              className="App-link"
-              href="https://reactjs.org"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn React
-            </a>
-          </header>
+          </div>
         </div>
-      );
+    );
 }
 
 export default Root;
