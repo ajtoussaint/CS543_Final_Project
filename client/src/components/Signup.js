@@ -26,7 +26,6 @@ const Signup = () => {
             arr.push(p.length > 7);
             arr.push(p === p2);
 
-            console.log(arr);
             setCheck(arr);
         }
         checkPasswords();
@@ -99,7 +98,7 @@ const Signup = () => {
                 <button 
                     type="submit"
                     //I typed "nice tailwind button on chatGPT"
-                    class = "bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-600 active:bg-blue-700 transition duration-200 ease-in-out m-2"
+                    className = "bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-600 active:bg-blue-700 transition duration-200 ease-in-out m-2"
                 >
                     Signup
                 </button>

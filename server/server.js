@@ -4,6 +4,7 @@ const express = require('express');//server util
 const mongoose = require('mongoose');//database util
 const testRouter = require('./routes/routerTest.js')
 const testDatabase = require('./routes/dataTest.js')
+const signup = require('./routes/signup.js')
 
 const cors = require('cors');
 require('dotenv').config();
@@ -41,7 +42,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
 //Routes
 app.use('/api', testRouter);
 app.use('/api', testDatabase);
-
+app.use('/api', signup);
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
