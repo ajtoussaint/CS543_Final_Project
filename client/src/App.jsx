@@ -9,6 +9,7 @@ import OtherPage from './components/OtherPage';
 import Subpage1 from './components/Subpage1';
 import Subpage2 from './components/Subpage2';
 import Signup  from './components/Signup';
+import Login from './components/Login';
 import './index.css';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
                   <Route path="2" element={<Subpage2/>} />
                 </Route>
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/login" element={<Login />} />
               </Route>
             </Routes>
           </>
