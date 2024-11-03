@@ -6,6 +6,7 @@ import { useUser } from './UserContext';
 const Header = () => {
     const { user, setUser } = useUser();
 
+    //this effect might not do anything
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -36,7 +37,7 @@ const Header = () => {
     }
 
     return(
-        <div>
+        <div className='h-10vh'>
             {user ? (
                 <div>
                     <div>

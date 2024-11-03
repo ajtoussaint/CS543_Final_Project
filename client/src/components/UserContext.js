@@ -1,5 +1,6 @@
 //A unified context for determining whether the user is logged in in every component
-// UserContext.js
+
+//not suitable for authentication, to authenticate GET request to /user
 import React, { createContext, useState, useContext } from 'react';
 
 const UserContext = createContext();
