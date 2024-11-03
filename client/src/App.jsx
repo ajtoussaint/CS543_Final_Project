@@ -11,6 +11,9 @@ import Subpage2 from './components/Subpage2';
 import Signup  from './components/Signup';
 import Login from './components/Login';
 import './index.css';
+import { UserProvider } from './components/UserContext';
+
+//TODO: follow chatGPTs advice for creating a context in this scenario
 
 function App() {
   const router = createBrowserRouter(
@@ -37,7 +40,9 @@ function App() {
   )
 
   return(
-    <RouterProvider router={router} />
+    <UserProvider>
+      <RouterProvider router={router} />
+    </UserProvider>
   )
 }
 

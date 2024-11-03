@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Link, Outlet } from "react-router-dom";
 import axiosInstance from '../modules/axiosInstance';
+import { useUser } from './UserContext';
 
 const Header = () => {
-    const [user, setUser] = useState(null);
+    const { user, setUser } = useUser();
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -16,7 +17,7 @@ const Header = () => {
           };
           
           fetchUser();
-    }, []);
+    }, [setUser]);
 
     const logout = async (e) => {
         e.preventDefault();

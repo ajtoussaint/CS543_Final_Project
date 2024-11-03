@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../modules/axiosInstance';
+import { useUser } from './UserContext';
 
 const Login = () => {
     const nav = useNavigate();
+    const { setUser } = useUser();
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -31,6 +33,8 @@ const Login = () => {
                     //example: incorrect cridentials
                     setMessage(res.data.error)
                 }else{
+                    //update the user context
+                    setUser(res.data.user);
                     //sends newly logged in user to the home page
                     nav("/");
                 }

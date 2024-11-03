@@ -102,7 +102,7 @@ passport.use(new LocalStrategy(
 app.post('/api/login', passport.authenticate('local'), (req, res) => {
     console.log("POST request to /login")//debug
     req.session.user = req.user.username;
-    res.sendStatus(200);
+    res.status(200).json({user: req.user});
 }); 
 
 app.get('/api/logout', (req, res) => {
