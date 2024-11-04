@@ -4,10 +4,16 @@ import {createBrowserRouter, RouterProvider, Route, Routes, createRoutesFromElem
 
 //components
 import Root from './components/Root';
+import Header from './components/Header';
 import OtherPage from './components/OtherPage';
 import Subpage1 from './components/Subpage1';
 import Subpage2 from './components/Subpage2';
+import Signup  from './components/Signup';
+import Login from './components/Login';
 import './index.css';
+import { UserProvider } from './components/UserContext';
+
+//TODO: follow chatGPTs advice for creating a context in this scenario
 
 function App() {
   const router = createBrowserRouter(
@@ -17,11 +23,15 @@ function App() {
         element={(
           <>
             <Routes>
-              <Route path="otherPage" element={<OtherPage />}>
-                <Route index element={<Subpage1/>} />
-                <Route path="2" element={<Subpage2/>} />
+              <Route path="/" element={<Header/>}>
+                <Route index element={<Root />} />
+                <Route path="otherPage" element={<OtherPage />}>
+                  <Route index element={<Subpage1/>} />
+                  <Route path="2" element={<Subpage2/>} />
+                </Route>
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/login" element={<Login />} />
               </Route>
-              <Route index element={<Root />} />
             </Routes>
           </>
         )}
@@ -30,7 +40,9 @@ function App() {
   )
 
   return(
-    <RouterProvider router={router} />
+    <UserProvider>
+      <RouterProvider router={router} />
+    </UserProvider>
   )
 }
 

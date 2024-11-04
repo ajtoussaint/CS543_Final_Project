@@ -2,8 +2,10 @@
 
 const express = require('express');//server util
 const mongoose = require('mongoose');//database util
-const testRouter = require('./routes/routerTest.js')
-const testDatabase = require('./routes/dataTest.js')
+const testRouter = require('./routes/routerTest.js');
+const testDatabase = require('./routes/dataTest.js');
+const signup = require('./routes/signup.js');
+const login = require('./routes/login.js');
 
 const cors = require('cors');
 require('dotenv').config();
@@ -37,10 +39,13 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.log(err));
 
+//Passport setup and login/logout routes
+login(app, MONGO_URI); //syntax is different because some app.use is applied
 
 //Routes
 app.use('/api', testRouter);
 app.use('/api', testDatabase);
+app.use('/api', signup);
 
 
 const PORT = process.env.PORT || 5000

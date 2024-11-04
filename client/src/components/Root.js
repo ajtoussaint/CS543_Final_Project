@@ -11,7 +11,13 @@ const Root = () => {
           try {
             const res = await axiosInstance.get("data");
             console.log(res.data);
-            setMessage(res.data.name);
+            //data is an array of user objects
+            setMessage(res.data
+              .map(user => {
+                return user.username;
+              })
+              .join(", ")
+          );
           } catch (err) {
             console.error("Error fetching message: ", err);
           }
