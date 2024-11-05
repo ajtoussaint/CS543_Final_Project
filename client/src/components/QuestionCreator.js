@@ -11,7 +11,6 @@ const QuestionCreator = () => {
 
     //state related to the question
     const [title, setTitle] = useState("My Question");
-    const [creatorId, setCreatorId] = useState("");
     const [tags, setTags] = useState("");
     const [media, setMedia] = useState([]);
     const [answers, setAnswers] = useState([]);
@@ -24,7 +23,6 @@ const QuestionCreator = () => {
             nav("/login");
             return;
         }else{
-            setCreatorId(user._id);
             if(questionId){
                 //editing existing question
 
@@ -74,11 +72,9 @@ const QuestionCreator = () => {
 
         try{
             //remove the item server side
-            const res = await axiosInstance.post("answer/delete", {
+            await axiosInstance.post("answer/delete", {
                 id:id
             });
-
-            console.log("axios done ", res);
 
             //remove the item client side
             setAnswers(prev => {
@@ -104,7 +100,24 @@ const QuestionCreator = () => {
     }
 
     const saveChanges = async () => {
-        console.log("save");
+        //save the question and get the id
+        let questionObject = {
+            title: title,
+            tags: tags,
+            answers: answers,
+            correctAnswerId: correct
+        }
+
+        try{
+            const createdQuestion = await axiosInstance.post("question/create", questionObject)
+            console.log("Server created a question: ", createdQuestion.data);
+            //use the question id to then save all the answers
+        }catch(err){
+            console.error(err);
+        }
+        
+
+        //if everything works redirect the user to the search page (temp using home page)
     }
 
     const discardChanges = async () => {
@@ -130,7 +143,7 @@ const QuestionCreator = () => {
                 <input 
                     type="text" 
                     value={tags} 
-                    onChange={(e) => setTitle(e.target.value)}
+                    onChange={(e) => setTags(e.target.value)}
                 />
             </div>
             {media.map((m, index) => (

@@ -20,12 +20,14 @@ router.get("/answer/create",  async (req, res) => {
     newAnswer.save()
         .then(() => {
             console.log("new answer created!");
+            return res.status(200).json(newAnswer);
         })
         .catch(err => {
             console.error("Error creating answer: ", err);
+            return res.sendStatus(500);
         })
+
     
-    return res.status(200).json(newAnswer);
 });
 
 router.post("/answer/delete", async (req, res) => {

@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 
 //define a mongoose schema
 const answerSchema = new mongoose.Schema({
-    //questionId: String, //reference question schema
+    questionId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Question",
+    },
     content: String,
   });
   
