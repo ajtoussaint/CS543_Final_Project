@@ -13,7 +13,12 @@ const Header = () => {
               const res = await axiosInstance.get("user");
               setUser(res.data);
             } catch (err) {
-              console.error("Error fetching user data:", err);
+              if(err.status === 401){
+                console.log("User is not signed in");
+              }else{
+                console.error("Error fetching user data:", err);
+              }
+              
             }
           };
           
