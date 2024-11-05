@@ -13,32 +13,32 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if(!username){
+        if (!username) {
             setMessage("Please enter a username");
-        }else if(!password){
+        } else if (!password) {
             setMessage("Please enter a password")
-        }else{
+        } else {
             //call the login route
-            try{
+            try {
                 const res = await axiosInstance.post("login", {
-                    username:username,
-                    password:password
+                    username: username,
+                    password: password
                 });
 
                 //for debugging
                 console.log(res.data);
 
                 //If the backend sends back a custom error just show that
-                if(res.data.error){
+                if (res.data.error) {
                     //example: incorrect cridentials
                     setMessage(res.data.error)
-                }else{
+                } else {
                     //update the user context
                     setUser(res.data.user);
                     //sends newly logged in user to the home page
                     nav("/");
                 }
-            }catch (err){
+            } catch (err) {
                 console.error('Error logging in user: ', err);
                 setMessage("Error connecting to server, refresh and try again");
             }
@@ -46,44 +46,59 @@ const Login = () => {
     }
 
     return (
-        <div className='flex items-center justify-center'>
-            <form onSubmit={handleSubmit} className='flex items-center flex-col justify-center bg-gray-100 p-4'>
-                <div>
-                    <h2 className='text-2xl font-bold mb-4'>
-                        Username: 
-                    </h2>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                </div>
-                <div>
-                    <h2 className='text-2xl font-bold mb-4'>
-                        Password: 
-                    </h2>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                <button 
-                    type="submit"
-                    //I typed "nice tailwind button on chatGPT"
-                    className = "bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-600 active:bg-blue-700 transition duration-200 ease-in-out m-2"
-                >
-                    Login
-                </button>
-                <Link to='/signup'>
-                    No Account? Create one!
-                </Link>
-                <div className='m-4 text-red-500'>
-                    {message}
-                </div>
-            </form>
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <div className="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+                <form onSubmit={handleSubmit} className="flex flex-col items-center">
+                    <h2 className="text-3xl font-bold mb-6 text-gray-800">Login</h2>
+
+                    {/* Username Input */}
+                    <div className="mb-4 w-full">
+                        <label className="block text-lg font-medium text-gray-700 mb-2">Username:</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    {/* Password Input */}
+                    <div className="mb-6 w-full">
+                        <label className="block text-lg font-medium text-gray-700 mb-2">Password:</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="p-3 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    {/* Login Button */}
+                    <button
+                        type="submit"
+                        className="bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg shadow hover:bg-blue-600 active:bg-blue-700 transition duration-200 ease-in-out w-full mb-4"
+                    >
+                        Login
+                    </button>
+
+                    {/* Signup Link */}
+                    <p>No Account? </p>
+                    <Link
+                        to="/signup"
+                        className=""
+                    >
+                        <span className="underline text-blue-500 hover:text-blue-600 transition duration-200 ease-in-out">Create one!</span>
+                    </Link>
+
+                    {/* Error Message */}
+                    <div className="mt-4 text-red-500 text-center">
+                        {message}
+                    </div>
+                </form>
+            </div>
         </div>
-    )
+    );
+
 }
 
 export default Login

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../modules/axiosInstance';
 
 const Signup = () => {
@@ -68,7 +68,7 @@ const Signup = () => {
                 {/* Left Section: Form */}
                 <form
                     onSubmit={handleSubmit}
-                    className="flex flex-col items-center justify-center w-1/2 p-6 bg-gray-100"
+                    className="flex flex-col items-center justify-center w-1/2 p-6 bg-white"
                 >
                     <h2 className="text-2xl font-bold mb-6">Sign Up</h2>
                     <div className="mb-4 w-full">
@@ -102,7 +102,12 @@ const Signup = () => {
                         type="submit"
                         className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-600 active:bg-blue-700 transition duration-200 ease-in-out"
                     >
-                        Signup
+                        <Link
+                            to="/login"
+                            className=""
+                        >
+                            Signup
+                        </Link>
                     </button>
                     <div className="m-4 text-red-500">{message}</div>
                 </form>
