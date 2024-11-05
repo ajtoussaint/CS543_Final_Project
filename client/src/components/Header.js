@@ -38,20 +38,25 @@ const Header = () => {
 
     return(
         <div className='h-10vh'>
-            {user ? (
-                <div>
+            <div className='flex space-x-4'>
+                {user ? (
                     <div>
-                        {user.username}
+                        <div>
+                            {user.username}
+                        </div>
+                        <button onClick={logout}>
+                            Logout
+                        </button>
                     </div>
-                    <button onClick={logout}>
-                        Logout
-                    </button>
+                ): (
+                    <Link to='/login'>
+                        Not logged in
+                    </Link>
+                )}
+                <div>
+                    Create a Question    
                 </div>
-            ): (
-                <Link to='/login'>
-                    Not logged in
-                </Link>
-            )}            
+            </div>            
             <Outlet />
         </div>
     )
