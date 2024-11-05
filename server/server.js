@@ -6,6 +6,7 @@ const testRouter = require('./routes/routerTest.js');
 const testDatabase = require('./routes/dataTest.js');
 const signup = require('./routes/signup.js');
 const login = require('./routes/login.js');
+const answer = require('./routes/answer.js');
 
 const cors = require('cors');
 require('dotenv').config();
@@ -46,6 +47,7 @@ login(app, MONGO_URI); //syntax is different because some app.use is applied
 app.use('/api', testRouter);
 app.use('/api', testDatabase);
 app.use('/api', signup);
+app.use('/api', answer);
 
 
 const PORT = process.env.PORT || 5000

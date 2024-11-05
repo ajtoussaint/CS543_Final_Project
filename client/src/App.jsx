@@ -31,7 +31,7 @@ function App() {
                 </Route>
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/create" element={<QuestionCreator />} />
+                <Route path="/create/:questionId?" element={<QuestionCreator />} />
               </Route>
             </Routes>
           </>

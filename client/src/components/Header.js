@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 const Header = () => {
     const { user, setUser } = useUser();
     const nav = useNavigate();
-    
+
     //this effect might not do anything
     useEffect(() => {
         const fetchUser = async () => {
@@ -62,7 +62,7 @@ const Header = () => {
                     </Link>
                 )}
                 <Link to='/create'>
-                    Create a Question    
+                    Create a new Question    
                 </Link>
             </div>            
             <Outlet />
