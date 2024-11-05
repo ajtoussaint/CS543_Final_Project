@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { Link, Outlet } from "react-router-dom";
 import axiosInstance from '../modules/axiosInstance';
 import { useUser } from './UserContext';
+import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
     const { user, setUser } = useUser();
-
+    const nav = useNavigate();
+    
     //this effect might not do anything
     useEffect(() => {
         const fetchUser = async () => {
@@ -33,6 +35,7 @@ const Header = () => {
             if(!res.error){
                 console.log("logged out");
                 setUser(null);
+                nav("/login");
             }else{
                 console.error("Error from server logging out: ", res.error);
             }

@@ -10,7 +10,7 @@ import Subpage1 from './components/Subpage1';
 import Subpage2 from './components/Subpage2';
 import Signup  from './components/Signup';
 import Login from './components/Login';
-import CreateQ from './components/CreateQ';
+import QuestionCreator from "./components/QuestionCreator";
 
 import './index.css';
 import { UserProvider } from './components/UserContext';
@@ -31,7 +31,7 @@ function App() {
                 </Route>
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/create" element={<CreateQ />} />
+                <Route path="/create" element={<QuestionCreator />} />
               </Route>
             </Routes>
           </>
