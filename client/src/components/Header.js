@@ -53,9 +53,9 @@ const Header = () => {
                         Not logged in
                     </Link>
                 )}
-                <div>
+                <Link to='/create'>
                     Create a Question    
-                </div>
+                </Link>
             </div>            
             <Outlet />
         </div>

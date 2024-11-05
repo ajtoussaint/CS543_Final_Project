@@ -10,10 +10,10 @@ import Subpage1 from './components/Subpage1';
 import Subpage2 from './components/Subpage2';
 import Signup  from './components/Signup';
 import Login from './components/Login';
+import CreateQ from './components/CreateQ';
+
 import './index.css';
 import { UserProvider } from './components/UserContext';
-
-//TODO: follow chatGPTs advice for creating a context in this scenario
 
 function App() {
   const router = createBrowserRouter(
@@ -31,6 +31,7 @@ function App() {
                 </Route>
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/create" element={<CreateQ />} />
               </Route>
             </Routes>
           </>
