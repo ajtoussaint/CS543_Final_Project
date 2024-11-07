@@ -55,7 +55,7 @@ router.post("/answer/delete", async (req, res) => {
 router.post("/answer/update", async (req, res) => {
     console.log("POST request to /answer/update", req.body);
 
-    const { _id, content } = req.body;
+    const { _id, content, questionId } = req.body;
 
     if(!req.user){
         console.log("You are not logged in!");
@@ -66,9 +66,12 @@ router.post("/answer/update", async (req, res) => {
         const updatedAnswer = await Answer.findById(_id);
 
         if(!updatedAnswer)
-            return res.sendStatus(404)
+            return res.sendStatus(404);
 
-        updatedAnswer.content = content
+        updatedAnswer.content = content;
+
+        if(questionId)
+            updatedAnswer.questionId = questionId;
 
         updatedAnswer.save()
         .then(() => {

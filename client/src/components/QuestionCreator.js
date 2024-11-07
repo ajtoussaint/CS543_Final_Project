@@ -6,7 +6,7 @@ import axiosInstance from '../modules/axiosInstance';
 
 const QuestionCreator = () => {
     const { user } = useUser();
-    const { questionId } = useParams();
+    const { qId } = useParams();
     const nav = useNavigate();
 
     //state related to the question
@@ -16,6 +16,7 @@ const QuestionCreator = () => {
     const [answers, setAnswers] = useState([]);
     const [correct, setCorrect] = useState();//id of correct answer
     const [newMediaType, setNewMediaType] = useState("text");
+    const [questionId, setQuestionId] = useState(qId);
     
     useEffect(() =>{
         if(!user){
@@ -58,6 +59,7 @@ const QuestionCreator = () => {
         
     }
 
+    //used for updating the answer locally
     const updateAnswer = (id, value) => {
         let contentObj = {content:value}
         setAnswers(prev => 
@@ -103,8 +105,6 @@ const QuestionCreator = () => {
             console.log("Updating this: ", ans);
             if(ans.unsaved)//removes flag for new answer
                 delete ans.unsaved
-            if(questionId)//add the Id if it exists
-                ans.questionId = questionId;
             try{
                 const res = await axiosInstance.post("answer/update", ans);
                 let updatedAns = res.data;
@@ -135,12 +135,11 @@ const QuestionCreator = () => {
             const createdQuestion = await axiosInstance.post("question/create", questionObject)
             console.log("Server created a question: ", createdQuestion.data);
             //use the question id to then save all the answers
-            console.log("Answers before saving: ", answers);
+            setQuestionId(createdQuestion.data._id)
+            console.log("Answers before saving: ", answers, "Qid: ", createdQuestion.data._id);
             Promise.all(
-                answers.map((ans) => postAnswerUpdate(ans))
-            ).then(() => {
-                console.log("Answers after saving: ", answers);
-            }).catch((err) => {
+                answers.map((ans) => postAnswerUpdate({ ...ans, questionId: createdQuestion.data._id }))
+            ).catch((err) => {
                 console.error("Error in saving all answers: ", err);
             });
         }catch(err){
@@ -223,7 +222,7 @@ const QuestionCreator = () => {
 
             <button onClick={saveChanges} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save</button>
             <button onClick={discardChanges} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 m-2">Discard Changes</button>
-            <button onClick={postAnswerUpdate} className="bg-purple-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> TEST</button>
+            <button onClick={() => {console.log(answers)}} className="bg-purple-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> TEST</button>
         </div>
     )
 }
