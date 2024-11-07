@@ -35,7 +35,7 @@ router.get("/answer/:id", async (req, res) => {
     try{
         const answer = await Answer.findById(id);
         if(answer){
-            console.log("Found answer to send: ", answer)
+            //console.log("Found answer to send: ", answer)
             res.status(200).json(answer);
         }else{  
             res.sendStatus(404);
@@ -91,7 +91,7 @@ router.post("/answer/update", async (req, res) => {
 
         updatedAnswer.save()
         .then(() => {
-            console.log("update performed", updatedAnswer);
+            //console.log("update performed", updatedAnswer);
             return res.status(200).json(updatedAnswer);
         })
         .catch(err => {

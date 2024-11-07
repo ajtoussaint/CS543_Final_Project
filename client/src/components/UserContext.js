@@ -13,10 +13,17 @@ export const UserProvider = ({ children }) => {
   useEffect(() => {
     async function fetchUser(){
       setLoading(true);
-      const { data } = await axiosInstance.get("/user");
-      console.log("Context fetched user: " , data);
-      setUser(data);
-      setLoading(false);
+      try{
+        const { data } = await axiosInstance.get("/user");
+        //console.log("Context fetched user: " , data);
+        setUser(data);
+      }catch(err){
+        console.error(err);
+      }finally{
+        setLoading(false);
+      }
+      
+      
     }
 
     fetchUser();

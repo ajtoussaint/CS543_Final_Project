@@ -44,7 +44,7 @@ router.get("/question/:id", async (req, res) => {
     try{
         const question = await Question.findById(id);
         if(question){
-            console.log("Found question to send: ", question);
+            //console.log("Found question to send: ", question);
             res.status(200).json(question);
         }else{
             res.sendStatus(404);
@@ -56,5 +56,38 @@ router.get("/question/:id", async (req, res) => {
 })
 
 //update a question from saving on the edit page
+router.post("/question/update", async (req, res) => {
+    console.log("POST request to /question/update", req.body);
+    const id = req.body._id;
+    try{
+        const question = await Question.findById(id);
+        if(question){
+            console.log("Found question to update: ", question);
+            //update question based on request
+            ["title", "tags", "correctAnswerId"].forEach(k => {
+                question[k] = req.body[k];
+            });
+
+            //update the questions answers
+            question.answers = req.body.answers.map((ans, i) => ({answerId: ans._id, order:i}))
+            console.log("Answer references updated in question: ", question.answers);
+            //save and return question
+            question.save()
+            .then(() => {
+                console.log("Question updated successfully: ", question);
+                return res.status(200).json(question);
+            }).catch(err => {
+            console.error("Error updating question: ", err);
+            return res.sendStatus(500);
+        })
+        }else{
+            res.sendStatus(404);
+        }
+    }catch(err){
+        console.error(err);
+        res.sendStatus(500);
+    }
+    
+})
 
 module.exports = router;

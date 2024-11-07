@@ -127,27 +127,27 @@ const QuestionCreator = () => {
     const postAnswerUpdate = async (ans) => {
         if(answers){
             //post the update for the first answer as a test
-            console.log("Updating this: ", ans);
+            //console.log("Updating this: ", ans);
             if(ans.unsaved)//removes flag for new answer
                 delete ans.unsaved
             try{
                 const res = await axiosInstance.post("answer/update", ans);
                 let updatedAns = res.data;
-                console.log("got update: ", updatedAns);
+                console.log("updated answer: ", updatedAns);
                 //answer should be the same in state but just in case the user changed it right after saving
                 setAnswers(prev => 
                     prev.map(ans =>
                         ans._id === updatedAns._id ? updatedAns : ans
                     )
                 );
-                console.log("Updating complete");
+                //console.log("Updating answer complete");
             }catch(err){
                 console.error(err);
             }
         }
     }
 
-    const saveChanges = async () => {
+    const saveChanges = async (exit) => {
         //save the question and get the id
         let questionObject = {
             title: title,
@@ -156,23 +156,47 @@ const QuestionCreator = () => {
             correctAnswerId: correct
         }
 
-        try{
-            const createdQuestion = await axiosInstance.post("question/create", questionObject)
-            console.log("Server created a question: ", createdQuestion.data);
-            //use the question id to then save all the answers
-            setQuestionId(createdQuestion.data._id)
-            console.log("Answers before saving: ", answers, "Qid: ", createdQuestion.data._id);
-            Promise.all(
-                answers.map((ans) => postAnswerUpdate({ ...ans, questionId: createdQuestion.data._id }))
-            ).catch((err) => {
-                console.error("Error in saving all answers: ", err);
-            });
-        }catch(err){
-            console.error(err);
+        if(questionId){
+            try{
+                console.log("Updating existing question", questionObject);
+                questionObject._id = questionId;
+                const res = await axiosInstance.post("question/update", questionObject);
+                console.log("Question updated serverside: ", res.data);
+                //save answers aswell
+                Promise.all(
+                    answers.map((ans) => postAnswerUpdate({ ...ans, questionId: res.data._id }))
+                ).then(() => {
+                    if(exit)
+                        nav("/");
+                }).catch((err) => {
+                    console.error("Error in saving all answers: ", err);
+                });
+            }catch(err){
+                console.error(err);
+            }
+
+        }else{
+            //create a new question doc for this question
+            try{
+                const createdQuestion = await axiosInstance.post("question/create", questionObject)
+                console.log("Server created a question: ", createdQuestion.data);
+                //use the question id to then save all the answers
+                setQuestionId(createdQuestion.data._id)
+                console.log("Answers before saving: ", answers, "Qid: ", createdQuestion.data._id);
+                Promise.all(
+                    answers.map((ans) => postAnswerUpdate({ ...ans, questionId: createdQuestion.data._id }))
+                ).then(() => {
+                    //if everything works redirect the user to the search page (temp using home page)
+                    if(exit)
+                        nav("/");
+                }).catch((err) => {
+                    console.error("Error in saving all answers: ", err);
+                });
+            }catch(err){
+                console.error(err);
+            }
         }
         
-
-        //if everything works redirect the user to the search page (temp using home page)
     }
 
     const discardChanges = async () => {
@@ -246,7 +270,8 @@ const QuestionCreator = () => {
                 <button type="submit" className="bg-gray-500">Add Answer</button>
             </form>
 
-            <button onClick={saveChanges} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save</button>
+            <button onClick={() => saveChanges(false)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save</button>
+            <button onClick={() => saveChanges(true)} className="bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save an Exit</button>
             <button onClick={discardChanges} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 m-2">Discard Changes</button>
             <button onClick={() => {getQuestion(questionId)}} className="bg-purple-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> TEST</button>
         </div>
