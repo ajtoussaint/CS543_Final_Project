@@ -25,10 +25,26 @@ router.get("/answer/create",  async (req, res) => {
         .catch(err => {
             console.error("Error creating answer: ", err);
             return res.sendStatus(500);
-        })
-
-    
+        }) 
 });
+
+router.get("/answer/:id", async (req, res) => {
+    const { id } = req.params;
+    console.log("GET request to /answer/" + id);
+
+    try{
+        const answer = await Answer.findById(id);
+        if(answer){
+            console.log("Found answer to send: ", answer)
+            res.status(200).json(answer);
+        }else{  
+            res.sendStatus(404);
+        }
+    }catch(err){
+        console.error(err);
+        res.sendStatus(500);
+    }
+})
 
 router.post("/answer/delete", async (req, res) => {
     console.log("POST request to /answer/delete", req.body);

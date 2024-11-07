@@ -15,10 +15,41 @@ const QuestionCreator = () => {
     const [media, setMedia] = useState([]);
     const [answers, setAnswers] = useState([]);
     const [correct, setCorrect] = useState();//id of correct answer
+
     const [newMediaType, setNewMediaType] = useState("text");
     const [questionId, setQuestionId] = useState(qId);
+    const [loading, setLoading] = useState(true);
+
+    const getQuestion = async (id) => {
+        console.log("Getting question: " + id);
+        try{
+            const res = await axiosInstance.get("/question/" + id);
+            return  res.data;
+        }catch(err){
+            console.error(err);
+            return null;
+        }
+    }
     
     useEffect(() =>{
+
+        async function fetchQuestion() {
+            let q = await getQuestion(questionId);
+            setTitle(q.title);
+            setTags(q.tags);
+            setCorrect(q.correctAnswerId);
+            //get all the answers
+            Promise.all(
+                q.answers.map((ans) => axiosInstance.get("/answer/" + ans.answerId))
+            ).then( (responses) => {
+                const data = responses.map((response) => response.data);
+                setAnswers(data);
+                console.log("Got all answers and updated", data);
+            }).catch( (err) => {
+                console.error("Some error getting answer data: ", err);
+            })
+        }
+
         if(!user){
             //if not logged in send the user to the login page
             nav("/login");
@@ -26,10 +57,12 @@ const QuestionCreator = () => {
         }else{
             if(questionId){
                 //editing existing question
-
                 //pull current state of the question from the server
+                fetchQuestion();
             }
         }
+
+        setLoading(false);
     }, [user, questionId, nav])
 
     const addMedia = async (e) => {
@@ -157,6 +190,10 @@ const QuestionCreator = () => {
     //prevents flickering for unAuth users
     if (!user) return null;
 
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <div>
             <h1>Question Creator:</h1>
@@ -222,7 +259,7 @@ const QuestionCreator = () => {
 
             <button onClick={saveChanges} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save</button>
             <button onClick={discardChanges} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 m-2">Discard Changes</button>
-            <button onClick={() => {console.log(answers)}} className="bg-purple-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> TEST</button>
+            <button onClick={() => {getQuestion(questionId)}} className="bg-purple-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> TEST</button>
         </div>
     )
 }
