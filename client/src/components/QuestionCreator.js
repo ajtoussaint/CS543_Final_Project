@@ -97,13 +97,14 @@ const QuestionCreator = () => {
         }  
     }
 
-    const postAnswerUpdate = async (i) => {
+    const postAnswerUpdate = async (ans) => {
         if(answers){
             //post the update for the first answer as a test
-            console.log("Updating this: ", answers[0]);
-            let ans = answers[0]
+            console.log("Updating this: ", ans);
             if(ans.unsaved)//removes flag for new answer
                 delete ans.unsaved
+            if(questionId)//add the Id if it exists
+                ans.questionId = questionId;
             try{
                 const res = await axiosInstance.post("answer/update", ans);
                 let updatedAns = res.data;
@@ -114,7 +115,7 @@ const QuestionCreator = () => {
                         ans._id === updatedAns._id ? updatedAns : ans
                     )
                 );
-                console.log("Updating of ans[0] complete");
+                console.log("Updating complete");
             }catch(err){
                 console.error(err);
             }
@@ -135,7 +136,13 @@ const QuestionCreator = () => {
             console.log("Server created a question: ", createdQuestion.data);
             //use the question id to then save all the answers
             console.log("Answers before saving: ", answers);
-            
+            Promise.all(
+                answers.map((ans) => postAnswerUpdate(ans))
+            ).then(() => {
+                console.log("Answers after saving: ", answers);
+            }).catch((err) => {
+                console.error("Error in saving all answers: ", err);
+            });
         }catch(err){
             console.error(err);
         }
