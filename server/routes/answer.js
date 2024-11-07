@@ -50,6 +50,33 @@ router.post("/answer/delete", async (req, res) => {
         console.error(err);
         return res.sendStatus(500);
     }
+});
+
+router.post("/answer/update", async (req, res) => {
+    console.log("POST request to /answer/delete", req.body);
+
+    const { _id } = req.body;
+
+    if(!req.user){
+        console.log("You are not logged in!");
+    }
+    //check that the user has authority to delete answers for this question
+        //TODO
+    try{
+        const updatedAnswer = Answer.findByIdAndUpdate(
+            _id,
+            req.body,
+            {new: true, runValidators:true}
+        )
+
+        if(!updatedAnswer)
+            return res.sendStatus(404)
+
+        return res.status(200).json(updatedAnswer);
+    }catch(err){
+        console.error(err);
+        return res.sendStatus(500);
+    }
 })
 
 module.exports = router;

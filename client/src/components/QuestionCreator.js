@@ -112,6 +112,8 @@ const QuestionCreator = () => {
             const createdQuestion = await axiosInstance.post("question/create", questionObject)
             console.log("Server created a question: ", createdQuestion.data);
             //use the question id to then save all the answers
+            console.log("Answers before saving: ", answers);
+            
         }catch(err){
             console.error(err);
         }
