@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useUser } from './UserContext';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import axiosInstance from '../modules/axiosInstance';
 
 const QuestionCreator = () => {
-    const { user } = useUser();
     const { qId } = useParams();
     const nav = useNavigate();
 
@@ -50,20 +48,12 @@ const QuestionCreator = () => {
             })
         }
 
-        if(!user){
-            //if not logged in send the user to the login page
-            nav("/login");
-            return;
-        }else{
-            if(questionId){
-                //editing existing question
-                //pull current state of the question from the server
-                fetchQuestion();
-            }
+        if(questionId){
+            fetchQuestion();
         }
 
         setLoading(false);
-    }, [user, questionId, nav])
+    }, [questionId, nav])
 
     const addMedia = async (e) => {
         e.preventDefault();
@@ -186,9 +176,6 @@ const QuestionCreator = () => {
     const discardChanges = async () => {
         console.log("discard");
     }
-
-    //prevents flickering for unAuth users
-    if (!user) return null;
 
     if (loading) {
         return <div>Loading...</div>;

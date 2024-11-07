@@ -11,6 +11,7 @@ import Subpage2 from './components/Subpage2';
 import Signup  from './components/Signup';
 import Login from './components/Login';
 import QuestionCreator from "./components/QuestionCreator";
+import ProtectedRoute from './components/ProtectedRoute';
 
 import './index.css';
 import { UserProvider } from './components/UserContext';
@@ -31,7 +32,12 @@ function App() {
                 </Route>
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/create/:questionId?" element={<QuestionCreator />} />
+                  <Route path="/create/:qId?" element={
+                    <ProtectedRoute>
+                      <QuestionCreator />
+                    </ProtectedRoute>
+                    } />
+                
               </Route>
             </Routes>
           </>
