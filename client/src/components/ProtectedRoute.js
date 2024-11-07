@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children }) => {
     if (!loading) {
       if (!user) {
         console.log("kicked out: ", user, loading);
-        navigate('/login');
+        //navigate('/login');
       } else {
         console.log("let in: ", user, loading);
       }
