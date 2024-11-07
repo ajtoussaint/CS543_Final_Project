@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import axiosInstance from '../modules/axiosInstance';
 
+import Loading from "./Loading";
+
 const QuestionCreator = () => {
     const { qId } = useParams();
     const nav = useNavigate();
@@ -178,7 +180,7 @@ const QuestionCreator = () => {
     }
 
     if (loading) {
-        return <div>Loading...</div>;
+        return <Loading />;
     }
 
     return (
