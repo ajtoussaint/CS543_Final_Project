@@ -94,9 +94,31 @@ const QuestionCreator = () => {
             
         }catch(err){
             console.error(err);
+        }  
+    }
+
+    const postAnswerUpdate = async (i) => {
+        if(answers){
+            //post the update for the first answer as a test
+            console.log("Updating this: ", answers[0]);
+            let ans = answers[0]
+            if(ans.unsaved)//removes flag for new answer
+                delete ans.unsaved
+            try{
+                const res = await axiosInstance.post("answer/update", ans);
+                let updatedAns = res.data;
+                console.log("got update: ", updatedAns);
+                //answer should be the same in state but just in case the user changed it right after saving
+                setAnswers(prev => 
+                    prev.map(ans =>
+                        ans._id === updatedAns._id ? updatedAns : ans
+                    )
+                );
+                console.log("Updating of ans[0] complete");
+            }catch(err){
+                console.error(err);
+            }
         }
-        
-        
     }
 
     const saveChanges = async () => {
@@ -194,6 +216,7 @@ const QuestionCreator = () => {
 
             <button onClick={saveChanges} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save</button>
             <button onClick={discardChanges} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 m-2">Discard Changes</button>
+            <button onClick={postAnswerUpdate} className="bg-purple-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> TEST</button>
         </div>
     )
 }

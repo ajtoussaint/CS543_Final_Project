@@ -53,9 +53,9 @@ router.post("/answer/delete", async (req, res) => {
 });
 
 router.post("/answer/update", async (req, res) => {
-    console.log("POST request to /answer/delete", req.body);
+    console.log("POST request to /answer/update", req.body);
 
-    const { _id } = req.body;
+    const { _id, content } = req.body;
 
     if(!req.user){
         console.log("You are not logged in!");
@@ -63,20 +63,26 @@ router.post("/answer/update", async (req, res) => {
     //check that the user has authority to delete answers for this question
         //TODO
     try{
-        const updatedAnswer = Answer.findByIdAndUpdate(
-            _id,
-            req.body,
-            {new: true, runValidators:true}
-        )
+        const updatedAnswer = await Answer.findById(_id);
 
         if(!updatedAnswer)
             return res.sendStatus(404)
 
-        return res.status(200).json(updatedAnswer);
+        updatedAnswer.content = content
+
+        updatedAnswer.save()
+        .then(() => {
+            console.log("update performed", updatedAnswer);
+            return res.status(200).json(updatedAnswer);
+        })
+        .catch(err => {
+            console.error("Error updating answer: ", err);
+            return res.sendStatus(500);
+        })
     }catch(err){
         console.error(err);
         return res.sendStatus(500);
     }
-})
+});
 
 module.exports = router;
