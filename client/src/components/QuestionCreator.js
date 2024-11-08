@@ -271,9 +271,8 @@ const QuestionCreator = () => {
             </form>
 
             <button onClick={() => saveChanges(false)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save</button>
-            <button onClick={() => saveChanges(true)} className="bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save an Exit</button>
+            <button onClick={() => saveChanges(true)} className="bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save and Exit</button>
             <button onClick={discardChanges} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 m-2">Discard Changes</button>
-            <button onClick={() => {getQuestion(questionId)}} className="bg-purple-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> TEST</button>
         </div>
     )
 }

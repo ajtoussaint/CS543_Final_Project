@@ -1,27 +1,36 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from './UserContext';
+import axiosInstance from '../modules/axiosInstance';
+import Loading from "./Loading";
 
 //wraps routes that require auth
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useUser();
-  const navigate = useNavigate();
+  const { user, setUser } = useUser();
+  const [loading, setLoading] = useState(true);
+  const nav = useNavigate();
 
   useEffect(() => {
-
-    if (!loading) {
-      if (!user) {
-        //console.log("kicked out: ", user, loading);
-        //navigate('/login');
-      } else {
-        //console.log("let in: ", user, loading);
+    async function fetchUser(){
+      try{
+        const { data } = await axiosInstance.get("/user");
+        console.log("Protector fetched user: " , data);
+        setUser(data);
+      }catch(err){
+        console.error(err);
+        nav("/login");
+      }finally{
+        setLoading(false);
       }
     }
 
-  }, [user, loading, navigate]);
+    fetchUser();
+
+
+  }, [setUser, nav]);
 
    if (loading) {
-    return <div>Loading...</div>; // Or any loading indicator
+    return <Loading />; 
   }
 
   return user ? children : null; // Render children if user is signed in
