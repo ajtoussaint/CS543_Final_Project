@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../modules/axiosInstance';
+import { useUser } from './UserContext';
 
 const Signup = () => {
     const nav = useNavigate();
+    const { setUser } = useUser();
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -52,8 +54,32 @@ const Signup = () => {
                 if(res.data.error){
                     setMessage(res.data.error)
                 }else{
-                    //TODO: login the new user
+                    //login the new user
                     console.log("Success: ", res.data)
+                    try{
+                        const res = await axiosInstance.post("login", {
+                            username:username,
+                            password:password
+                        });
+        
+                        //for debugging
+                        console.log(res.data);
+        
+                        //If the backend sends back a custom error just show that
+                        if(res.data.error){
+                            //example: incorrect cridentials
+                            setMessage(res.data.error)
+                        }else{
+                            //update the user context
+                            setUser(res.data.user);
+                            //sends newly logged in user to the home page
+                            nav("/");
+                        }
+                    }catch (err){
+                        console.error('Error logging in user: ', err);
+                        setMessage("Error connecting to server, refresh and try again");
+                        nav("/login");
+                    }
                 }
             }catch (err){
                 console.error('Error signing up user: ', err);

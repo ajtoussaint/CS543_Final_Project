@@ -9,26 +9,6 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
-
-  /*useEffect(() => {
-    async function fetchUser(){
-      setLoading(true);
-      try{
-        const { data } = await axiosInstance.get("/user");
-        //console.log("Context fetched user: " , data);
-        setUser(data);
-      }catch(err){
-        console.error(err);
-      }finally{
-        setLoading(false);
-      }
-      
-      
-    }
-
-    fetchUser();
-  },[]);*/
-
   return (
     <UserContext.Provider value={{ user, setUser }}>
       {children}
