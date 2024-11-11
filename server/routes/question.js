@@ -7,13 +7,13 @@ const Question = require("../models/Question.model");
 router.post("/question/create", async (req, res) => {
     console.log("POST request to /question/create");
 
-    const {title, tags, answers, correctAnswerId} = req.body;
+    const { title, tags, answers, correctAnswerId } = req.body;
 
-    if(!req.user){
+    if (!req.user) {
         console.log("You are not logged in!");
-    }else{
+    } else {
         let answerMap = answers.map((a, index) => {
-            return {answerId:a._id, order: (index+1)}
+            return { answerId: a._id, order: (index + 1) }
         })
         //only create questions if authenticated
         const question = new Question({
@@ -41,15 +41,15 @@ router.get("/question/:id", async (req, res) => {
     const { id } = req.params;
     console.log("GET request to /question/" + id);
 
-    try{
+    try {
         const question = await Question.findById(id);
-        if(question){
+        if (question) {
             //console.log("Found question to send: ", question);
             res.status(200).json(question);
-        }else{
+        } else {
             res.sendStatus(404);
         }
-    }catch(err){
+    } catch (err) {
         console.error(err);
         res.sendStatus(500);
     }
@@ -59,9 +59,9 @@ router.get("/question/:id", async (req, res) => {
 router.post("/question/update", async (req, res) => {
     console.log("POST request to /question/update", req.body);
     const id = req.body._id;
-    try{
+    try {
         const question = await Question.findById(id);
-        if(question){
+        if (question) {
             console.log("Found question to update: ", question);
             //update question based on request
             ["title", "tags", "correctAnswerId"].forEach(k => {
@@ -69,25 +69,39 @@ router.post("/question/update", async (req, res) => {
             });
 
             //update the questions answers
-            question.answers = req.body.answers.map((ans, i) => ({answerId: ans._id, order:i}))
+            question.answers = req.body.answers.map((ans, i) => ({ answerId: ans._id, order: i }))
             console.log("Answer references updated in question: ", question.answers);
             //save and return question
             question.save()
-            .then(() => {
-                console.log("Question updated successfully: ", question);
-                return res.status(200).json(question);
-            }).catch(err => {
-            console.error("Error updating question: ", err);
-            return res.sendStatus(500);
-        })
-        }else{
+                .then(() => {
+                    console.log("Question updated successfully: ", question);
+                    return res.status(200).json(question);
+                }).catch(err => {
+                    console.error("Error updating question: ", err);
+                    return res.sendStatus(500);
+                })
+        } else {
             res.sendStatus(404);
         }
-    }catch(err){
+    } catch (err) {
         console.error(err);
         res.sendStatus(500);
     }
-    
+
 })
+
+
+// Get all questions
+router.get("/questions", async (req, res) => {
+    console.log("GET request to /questions");
+
+    try {
+        const questions = await Question.find();
+        res.status(200).json(questions);
+    } catch (err) {
+        console.error("Error fetching questions: ", err);
+        res.sendStatus(500);
+    }
+});
 
 module.exports = router;
