@@ -6,7 +6,7 @@ const OtherPage = () => {
         <div>
             <div>You are on the other page!</div>
             <Link to='/'>Go Back</Link>
-            <Outlet />
+            <h1>Testing media upload:</h1>
         </div> 
     )
 }
