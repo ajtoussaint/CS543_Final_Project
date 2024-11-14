@@ -14,7 +14,17 @@ const questionSchema = new mongoose.Schema({
             required:true,
         }
     }],
-    //array of media //relate to media schema similar to answers
+    media: [{
+        mediaId:{
+            type:mongoose.Schema.Types.ObjectId,
+            ref: "Media",
+            required:true,
+        },
+        order: {
+            type: Number,
+            required:true,
+        }
+    }],
     answers: [{
         answerId:{
             type: mongoose.Schema.Types.ObjectId,

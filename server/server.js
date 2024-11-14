@@ -8,6 +8,7 @@ const signup = require('./routes/signup.js');
 const login = require('./routes/login.js');
 const answer = require('./routes/answer.js');
 const question = require('./routes/question.js');
+const media = require('./routes/media.js');
 
 const cors = require('cors');
 require('dotenv').config();
@@ -50,6 +51,7 @@ app.use('/api', testDatabase);
 app.use('/api', signup);
 app.use('/api', answer);
 app.use('/api', question);
+app.use('/api', media);
 
 
 const PORT = process.env.PORT || 5000
