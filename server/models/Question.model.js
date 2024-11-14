@@ -7,6 +7,7 @@ const questionSchema = new mongoose.Schema({
         ref: "User",
         required:true
     },
+    //TGS: create tag model and set up tags as a list of FKs
     tags: String,
     //array of media //relate to media schema similar to answers
     answers: [{

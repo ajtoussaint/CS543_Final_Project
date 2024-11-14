@@ -12,9 +12,13 @@ router.post("/question/create", async (req, res) => {
     if (!req.user) {
         console.log("You are not logged in!");
     } else {
+        //convert list of answers to FKs
         let answerMap = answers.map((a, index) => {
             return { answerId: a._id, order: (index + 1) }
         })
+
+        //TGS: convert list of tags to new docs, create if not existing
+
         //only create questions if authenticated
         const question = new Question({
             title: title,
@@ -44,7 +48,7 @@ router.get("/question/:id", async (req, res) => {
     try {
         const question = await Question.findById(id);
         if (question) {
-            //console.log("Found question to send: ", question);
+            //TGS: coalesce tag documents into a string  before returning the question
             res.status(200).json(question);
         } else {
             res.sendStatus(404);
@@ -63,6 +67,8 @@ router.post("/question/update", async (req, res) => {
         const question = await Question.findById(id);
         if (question) {
             console.log("Found question to update: ", question);
+            //TGS: convert list of tags to new docs, create if not existing
+
             //update question based on request
             ["title", "tags", "correctAnswerId"].forEach(k => {
                 question[k] = req.body[k];
@@ -97,6 +103,7 @@ router.get("/questions", async (req, res) => {
 
     try {
         const questions = await Question.find();
+        //TGS: coalesce tag documents into a string  before returning the question
         res.status(200).json(questions);
     } catch (err) {
         console.error("Error fetching questions: ", err);
