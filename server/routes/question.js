@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Question = require("../models/Question.model");
+const Tag = require("../models/Tag.model");
 
 //create a new question from saving on the edit page
 router.post("/question/create", async (req, res) => {
@@ -17,26 +18,34 @@ router.post("/question/create", async (req, res) => {
             return { answerId: a._id, order: (index + 1) }
         })
 
-        //TGS: convert list of tags to new docs, create if not existing
+        tagifyString(tags).then( (dbTags) => {
+            //dbTags is an array of tag objects from the database
+            console.log(dbTags);
+            qTags = dbTags.map(t => {
+                return {tagId: t._id}
+            });
 
-        //only create questions if authenticated
-        const question = new Question({
-            title: title,
-            creatorId: req.user._id,
-            tags: tags,
-            answers: answerMap,
-            correctAnswerId: correctAnswerId,
+            const question = new Question({
+                title: title,
+                creatorId: req.user._id,
+                tags: qTags,
+                answers: answerMap,
+                correctAnswerId: correctAnswerId,
+            })
+    
+            question.save()
+                .then(() => {
+                    console.log("new question created!", question);
+                    res.json(question);
+                })
+                .catch(err => {
+                    console.error("Error creating question: ", err);
+                    res.sendStatus(500);
+                })
         })
 
-        question.save()
-            .then(() => {
-                console.log("new question created!", question);
-                res.json(question);
-            })
-            .catch(err => {
-                console.error("Error creating question: ", err);
-                res.sendStatus(500);
-            })
+        //only create questions if authenticated
+        
     }
 });
 
@@ -48,8 +57,12 @@ router.get("/question/:id", async (req, res) => {
     try {
         const question = await Question.findById(id);
         if (question) {
-            //TGS: coalesce tag documents into a string  before returning the question
-            res.status(200).json(question);
+            //coalesce tag documents into a string  before returning the question
+            const response = {
+                ...question.toObject(), 
+                tags: await stringifyTags(question.tags) // Replace the tags property with the string
+            };
+            res.status(200).json(response);
         } else {
             res.sendStatus(404);
         }
@@ -94,7 +107,48 @@ router.post("/question/update", async (req, res) => {
         res.sendStatus(500);
     }
 
-})
+});
+
+async function tagifyString(tags){
+    //convert list of tags to new docs, create if not existing
+    tagList = tags.split(",").map(x =>x.trim().toLowerCase());
+
+    return Promise.all(
+        tagList.map(async (tname) =>{
+            try{
+                let tag = await Tag.findOne({name: tname});
+                if(!tag){
+                    //create a new Tag
+                    console.log("Creating new tag for: ", tname);
+                    tag = new Tag({name:tname});
+                    await tag.save();
+                }
+                return tag;
+            }catch(err){
+                console.error("Problem finding/creating tags by name", err);
+                return null;
+            }
+        })
+    )
+};
+
+async function stringifyTags(tags){
+    //tags is array of objects with tagId attr
+    return Promise.all(
+        tags.map(async (t) => {
+            try{
+                let tag = await Tag.findById(t.tagId);
+                return tag.name;
+            }catch(err){
+                console.error("Problem finding tag names for output", err);
+            }
+        })
+    ).then(tagNames => {
+        // Filter out null values and join the names
+        return tagNames.filter(name => name !== null).join(', ');
+    });
+
+}
 
 
 // Get all questions
@@ -104,7 +158,16 @@ router.get("/questions", async (req, res) => {
     try {
         const questions = await Question.find();
         //TGS: coalesce tag documents into a string  before returning the question
-        res.status(200).json(questions);
+        Promise.all(questions.map(async q => {
+            const r = {
+                ...q.toObject(), 
+                tags: await stringifyTags(q.tags) // Replace the tags property with the string
+            };
+            return r;
+        })).then(qs => {
+            console.log("Responding with: ", qs);
+            res.status(200).json(qs);
+        })
     } catch (err) {
         console.error("Error fetching questions: ", err);
         res.sendStatus(500);
