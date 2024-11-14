@@ -9,12 +9,11 @@ const QuestionCreator = () => {
     const { qId } = useParams();
     const nav = useNavigate();
 
-    //state related to the question
     const [title, setTitle] = useState("My Question");
     const [tags, setTags] = useState("");
     const [media, setMedia] = useState([]);
     const [answers, setAnswers] = useState([]);
-    const [correct, setCorrect] = useState();//id of correct answer
+    const [correct, setCorrect] = useState(); // id of the correct answer
 
     const [newMediaType, setNewMediaType] = useState("text");
     const [questionId, setQuestionId] = useState(qId);
@@ -22,259 +21,247 @@ const QuestionCreator = () => {
 
     const getQuestion = async (id) => {
         console.log("Getting question: " + id);
-        try{
+        try {
             const res = await axiosInstance.get("/question/" + id);
-            return  res.data;
-        }catch(err){
+            return res.data;
+        } catch (err) {
             console.error(err);
             return null;
         }
-    }
-    
-    useEffect(() =>{
+    };
 
+    useEffect(() => {
         async function fetchQuestion() {
             let q = await getQuestion(questionId);
             setTitle(q.title);
             setTags(q.tags);
             setCorrect(q.correctAnswerId);
-            //get all the answers
+
             Promise.all(
                 q.answers.map((ans) => axiosInstance.get("/answer/" + ans.answerId))
-            ).then( (responses) => {
+            ).then((responses) => {
                 const data = responses.map((response) => response.data);
                 setAnswers(data);
                 console.log("Got all answers and updated", data);
-            }).catch( (err) => {
+            }).catch((err) => {
                 console.error("Some error getting answer data: ", err);
-            })
+            });
         }
 
-        if(questionId){
+        if (questionId) {
             fetchQuestion();
         }
 
         setLoading(false);
-    }, [questionId, nav])
+    }, [questionId, nav]);
 
     const addMedia = async (e) => {
         e.preventDefault();
         console.log(newMediaType);
-    }
+    };
 
     const addAnswer = async (e) => {
         e.preventDefault();
         console.log("Adding answer");
-        try{
+        try {
             const res = await axiosInstance.get("answer/create");
             let answerObject = res.data;
-            
-            //track that this is a newly created answer for saving purposes
             answerObject.unsaved = true;
-
-            setAnswers(prev => [...prev, answerObject]);
-            console.log("Added new answer");
-            //if this is the first answer added make it correct
-            if(answers.length < 1){
+            setAnswers((prev) => [...prev, answerObject]);
+            if (answers.length < 1) {
                 setCorrect(res.data._id);
             }
-        }catch(err){
+        } catch (err) {
             console.error(err);
         }
-        
-    }
+    };
 
-    //used for updating the answer locally
     const updateAnswer = (id, value) => {
-        let contentObj = {content:value}
-        setAnswers(prev => 
-            prev.map(ans =>
-                ans._id === id ? {...ans, ...contentObj} : ans
+        let contentObj = { content: value };
+        setAnswers((prev) =>
+            prev.map((ans) =>
+                ans._id === id ? { ...ans, ...contentObj } : ans
             )
         );
-    }
+    };
 
-    const deleteAnswer = async (id) =>{
-        console.log("Attempting to delte item: " + id);
-
-        try{
-            //remove the item server side
-            await axiosInstance.post("answer/delete", {
-                id:id
-            });
-
-            //remove the item client side
-            setAnswers(prev => {
-                const updatedAnswers = prev.filter(ans => ans._id !== id);
-                //if this was the correct answer set a new correct answer
-                if(correct === id){
-                    if(updatedAnswers.length > 0){
+    const deleteAnswer = async (id) => {
+        console.log("Attempting to delete item: " + id);
+        try {
+            await axiosInstance.post("answer/delete", { id: id });
+            setAnswers((prev) => {
+                const updatedAnswers = prev.filter((ans) => ans._id !== id);
+                if (correct === id) {
+                    if (updatedAnswers.length > 0) {
                         setCorrect(updatedAnswers[0]._id);
-                    }else{
+                    } else {
                         setCorrect(null);
                     }
                 }
                 console.log("item deleted");
-                return updatedAnswers
-            },);
-
-            
-        }catch(err){
+                return updatedAnswers;
+            });
+        } catch (err) {
             console.error(err);
-        }  
-    }
+        }
+    };
 
     const postAnswerUpdate = async (ans) => {
-        if(answers){
-            //post the update for the first answer as a test
-            //console.log("Updating this: ", ans);
-            if(ans.unsaved)//removes flag for new answer
-                delete ans.unsaved
-            try{
+        if (answers) {
+            if (ans.unsaved) delete ans.unsaved;
+            try {
                 const res = await axiosInstance.post("answer/update", ans);
                 let updatedAns = res.data;
-                console.log("updated answer: ", updatedAns);
-                //answer should be the same in state but just in case the user changed it right after saving
-                setAnswers(prev => 
-                    prev.map(ans =>
+                setAnswers((prev) =>
+                    prev.map((ans) =>
                         ans._id === updatedAns._id ? updatedAns : ans
                     )
                 );
-                //console.log("Updating answer complete");
-            }catch(err){
+            } catch (err) {
                 console.error(err);
             }
         }
-    }
+    };
 
     const saveChanges = async (exit) => {
-        //save the question and get the id
         let questionObject = {
             title: title,
             tags: tags,
             answers: answers,
-            correctAnswerId: correct
-        }
+            correctAnswerId: correct,
+        };
 
-        if(questionId){
-            try{
+        if (questionId) {
+            try {
                 console.log("Updating existing question", questionObject);
                 questionObject._id = questionId;
                 const res = await axiosInstance.post("question/update", questionObject);
-                console.log("Question updated serverside: ", res.data);
-                //save answers aswell
                 Promise.all(
                     answers.map((ans) => postAnswerUpdate({ ...ans, questionId: res.data._id }))
                 ).then(() => {
-                    if(exit)
-                        nav("/");
+                    if (exit) nav("/");
                 }).catch((err) => {
                     console.error("Error in saving all answers: ", err);
                 });
-            }catch(err){
+            } catch (err) {
                 console.error(err);
             }
-
-        }else{
-            //create a new question doc for this question
-            try{
-                const createdQuestion = await axiosInstance.post("question/create", questionObject)
-                console.log("Server created a question: ", createdQuestion.data);
-                //use the question id to then save all the answers
-                setQuestionId(createdQuestion.data._id)
-                console.log("Answers before saving: ", answers, "Qid: ", createdQuestion.data._id);
+        } else {
+            try {
+                const createdQuestion = await axiosInstance.post("question/create", questionObject);
+                setQuestionId(createdQuestion.data._id);
                 Promise.all(
                     answers.map((ans) => postAnswerUpdate({ ...ans, questionId: createdQuestion.data._id }))
                 ).then(() => {
-                    //if everything works redirect the user to the search page (temp using home page)
-                    if(exit)
-                        nav("/");
+                    if (exit) nav("/");
                 }).catch((err) => {
                     console.error("Error in saving all answers: ", err);
                 });
-            }catch(err){
+            } catch (err) {
                 console.error(err);
             }
         }
-        
-    }
+    };
 
     const discardChanges = async () => {
         console.log("discard");
-    }
+    };
 
     if (loading) {
         return <Loading />;
     }
 
     return (
-        <div>
-            <h1>Question Creator:</h1>
-            <div className="border border-black m-4">
-                Title: 
-                <input 
-                    type="text" 
-                    value={title} 
-                    onChange={(e) => setTitle(e.target.value)}
-                />
-            </div>
-            <div className="border border-black  m-4">
-                Tags: 
-                <input 
-                    type="text" 
-                    value={tags} 
-                    onChange={(e) => setTags(e.target.value)}
-                />
-            </div>
-            {media.map((m, index) => (
-                <div key={index} className="media border border-black-500 m-4">
-                    {m._id};
-                </div>
-            ))}
-            <form onSubmit={addMedia} className="border border-black  m-4">
-                <label htmlFor="newMediaType">Add media:</label>
-                <select id="newMediaType" value={newMediaType} onChange={(e) => setNewMediaType(e.target.value)}>
-                    <option value="text">Text</option>
-                    <option value="image">Image</option>
-                    <option value="audio">Audio</option>
-                    <option value="video">Video</option>
-                </select>
-                <button type="submit" className="bg-gray-500">Add new media slot</button>
-            </form>
-            {answers.map((a, index) => (
-                <div key={index} className="answer border border-black-500 m-4">
-                    <div>
-                        Answer {index + 1}:
-                    </div>
-                    <div>
-                    {a._id}
-                    </div>
+        <div className="flex items-center justify-center min-h-screen bg-gray-100 p-6">
+            <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-6">
+                <h1 className="text-2xl font-semibold text-center mb-6">Question Creator</h1>
+                
+                <div className="mb-4">
+                    <label className="block text-gray-700 font-bold mb-2">Title:</label>
                     <input 
-                        type="text" 
-                        value={a.content} 
-                        onChange={(e) => updateAnswer(a._id, e.target.value)}
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded"
                     />
-                    <button
-                        onClick={() => deleteAnswer(a._id)}
-                    >Delete Answer</button>
-                    {/*have radio buttons to select the correct answer*/}
-                    <div>
-                        {a._id === correct ? "RIGHT" : "WRONG"}
-                    </div>
-                    <button
-                        onClick={() => setCorrect(a._id)}
-                    >Make this answer the correct answer</button>
                 </div>
-            ))}
-            <form onSubmit={addAnswer} className="border border-black  m-4">
-                <button type="submit" className="bg-gray-500">Add Answer</button>
-            </form>
+                
+                <div className="mb-4">
+                    <label className="block text-gray-700 font-bold mb-2">Tags:</label>
+                    <input 
+                        type="text"
+                        value={tags}
+                        onChange={(e) => setTags(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded"
+                    />
+                </div>
 
-            <button onClick={() => saveChanges(false)} className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save</button>
-            <button onClick={() => saveChanges(true)} className="bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 m-2"> Save and Exit</button>
-            <button onClick={discardChanges} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 m-2">Discard Changes</button>
+                <div className="mb-4">
+                    <label className="block text-gray-700 font-bold mb-2">Select Media Type:</label>
+                    <select
+                        id="newMediaType"
+                        value={newMediaType}
+                        onChange={(e) => setNewMediaType(e.target.value)}
+                        className="w-full p-2 border border-gray-300 rounded"
+                    >
+                        <option value="text">Text</option>
+                        <option value="image">Image</option>
+                        <option value="audio">Audio</option>
+                        <option value="video">Video</option>
+                    </select>
+                    <button
+                        onClick={addMedia}
+                        className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                    >Add Media</button>
+                </div>
+                
+                {answers.map((a, index) => (
+                    <div key={index} className="border border-gray-300 rounded p-4 mb-4">
+                        <h3 className="font-semibold">Answer {index + 1}</h3>
+                        <input 
+                            type="text"
+                            value={a.content}
+                            onChange={(e) => updateAnswer(a._id, e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded mb-2"
+                        />
+                        <button
+                            onClick={() => deleteAnswer(a._id)}
+                            className="text-red-500 hover:text-red-700 text-sm mb-2"
+                        >Delete Answer</button>
+                        <div className="flex items-center space-x-2">
+                            <input 
+                                type="radio"
+                                checked={a._id === correct}
+                                onChange={() => setCorrect(a._id)}
+                                className="text-green-500"
+                            />
+                            <label className="text-sm">{a._id === correct ? "Correct Answer" : "Mark as Correct"}</label>
+                        </div>
+                    </div>
+                ))}
+
+                <button
+                    onClick={addAnswer}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4"
+                >Add Answer</button>
+                
+                <div className="flex justify-between">
+                    <button
+                        onClick={() => saveChanges(false)}
+                        className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                    >Save</button>
+                    <button
+                        onClick={() => saveChanges(true)}
+                        className="bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
+                    >Save and Exit</button>
+                    <button
+                        onClick={discardChanges}
+                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+                    >Discard Changes</button>
+                </div>
+            </div>
         </div>
-    )
-}
+    );
+};
 
 export default QuestionCreator;

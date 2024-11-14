@@ -21,6 +21,7 @@ function App() {
     createRoutesFromElements(
       <Route
         path='/*'
+        classname = "bg-gray-100"
         element={(
           <>
             <Routes>
