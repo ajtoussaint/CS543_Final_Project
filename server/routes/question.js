@@ -20,7 +20,6 @@ router.post("/question/create", async (req, res) => {
 
         tagifyString(tags).then( (dbTags) => {
             //dbTags is an array of tag objects from the database
-            console.log(dbTags);
             qTags = dbTags.map(t => {
                 return {tagId: t._id}
             });
@@ -81,9 +80,15 @@ router.post("/question/update", async (req, res) => {
         if (question) {
             console.log("Found question to update: ", question);
             //TGS: convert list of tags to new docs, create if not existing
+            let tags = await tagifyString(req.body.tags)
+            
+            question.tags = tags.map(t => {
+                return {tagId: t._id}
+            });
 
+            console.log("Updated tags to be:", question.tags);
             //update question based on request
-            ["title", "tags", "correctAnswerId"].forEach(k => {
+            ["title", "correctAnswerId"].forEach(k => {
                 question[k] = req.body[k];
             });
 
@@ -147,14 +152,12 @@ async function stringifyTags(tags){
         // Filter out null values and join the names
         return tagNames.filter(name => name !== null).join(', ');
     });
-
 }
 
 
 // Get all questions
 router.get("/questions", async (req, res) => {
     console.log("GET request to /questions");
-
     try {
         const questions = await Question.find();
         //TGS: coalesce tag documents into a string  before returning the question
