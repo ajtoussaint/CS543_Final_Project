@@ -10,16 +10,18 @@ import Subpage1 from './components/Subpage1';
 import Subpage2 from './components/Subpage2';
 import Signup  from './components/Signup';
 import Login from './components/Login';
+import QuestionCreator from "./components/QuestionCreator";
+import ProtectedRoute from './components/ProtectedRoute';
+
 import './index.css';
 import { UserProvider } from './components/UserContext';
-
-//TODO: follow chatGPTs advice for creating a context in this scenario
 
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route
         path='/*'
+        classname = "bg-gray-100"
         element={(
           <>
             <Routes>
@@ -31,6 +33,12 @@ function App() {
                 </Route>
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login />} />
+                  <Route path="/create/:qId?" element={
+                    <ProtectedRoute>
+                      <QuestionCreator />
+                    </ProtectedRoute>
+                    } />
+                
               </Route>
             </Routes>
           </>
