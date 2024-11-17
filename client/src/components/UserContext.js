@@ -3,6 +3,7 @@
 //not suitable for authentication, to authenticate GET request to /user
 import React, { createContext, useState, useContext } from 'react';
 
+
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {

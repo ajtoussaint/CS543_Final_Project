@@ -6,6 +6,8 @@ const testRouter = require('./routes/routerTest.js');
 const testDatabase = require('./routes/dataTest.js');
 const signup = require('./routes/signup.js');
 const login = require('./routes/login.js');
+const answer = require('./routes/answer.js');
+const question = require('./routes/question.js');
 
 const cors = require('cors');
 require('dotenv').config();
@@ -35,7 +37,7 @@ app.use(cors({origin: client_url }));
 const DATABASE_NAME = process.env.DATABASE_NAME || "mydb";
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/" + DATABASE_NAME;
 
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGO_URI)
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => console.log(err));
 
@@ -46,6 +48,8 @@ login(app, MONGO_URI); //syntax is different because some app.use is applied
 app.use('/api', testRouter);
 app.use('/api', testDatabase);
 app.use('/api', signup);
+app.use('/api', answer);
+app.use('/api', question);
 
 
 const PORT = process.env.PORT || 5000
