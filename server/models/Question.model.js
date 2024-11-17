@@ -7,7 +7,13 @@ const questionSchema = new mongoose.Schema({
         ref: "User",
         required:true
     },
-    tags: String,
+    tags: [{
+        tagId:{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Tag",
+            required:true,
+        }
+    }],
     //array of media //relate to media schema similar to answers
     answers: [{
         answerId:{
