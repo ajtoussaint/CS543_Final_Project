@@ -68,9 +68,31 @@ const QuestionCreator = () => {
     const addMedia = async (e) => {
         e.preventDefault();
         console.log("Adding media of type", newMedia.type);
+        let newMediaObj = {type: newMedia.type, title: newMedia.title}
+        //upload the file
+        if(newMedia.file && newMedia.type !== "text"){
+            console.log("Uploading file");
+            const formData = new FormData();
+            formData.append('file', newMedia.file);
+            const fileRes = await axiosInstance.post("/file", formData,{
+                headers: {
+                  'Content-Type': 'multipart/form-data'
+                }
+            });
+            newMediaObj.fileId = fileRes.data.fileId;
+        }
+
         try{
-            const res = await axiosInstance.post("media/create", {type: newMedia.type, title: newMedia.title});
+            const res = await axiosInstance.post("media/create", newMediaObj);
             let mediaObject = res.data;
+            console.log("Media object after creating media on server: ", mediaObject);
+            //get request for the file
+            if(mediaObject.fileId){
+                const mediaRes = await axiosInstance.get("/file/" + mediaObject.fileId, { responseType: 'blob' });
+                const url = URL.createObjectURL(mediaRes.data);
+                mediaObject.url = url;
+            }
+            //add mediaObject.fileUrl =...
             setMedia((prev) => [...prev, mediaObject])
         }catch(err){
             console.error(err);
@@ -206,6 +228,10 @@ const QuestionCreator = () => {
         console.log("discard");
     };
 
+    const handleFileChange = (e) => {
+        updateNewMedia(e.target.files[0], "file");
+    }
+
     if (loading) {
         return <Loading />;
     }
@@ -247,9 +273,12 @@ const QuestionCreator = () => {
                     }else{ //add other cases for each media type
                         return (<div key={m._id}>
                             <h3>{m.title}</h3>
-                            <div>
-                                Placeholder for media of type {m.type}
-                            </div>
+                            {m.url ? (
+                                <img src={m.url} alt="Downloaded" />
+                            ):(
+                                <p>No image</p>
+                            )
+                            }
                             <button
                             onClick={() => deleteMedia(m._id)}
                             className="text-red-500 hover:text-red-700 text-sm mb-2"
@@ -277,10 +306,15 @@ const QuestionCreator = () => {
                             onChange={(e) => updateNewMedia(e.target.value, "title")}
                             className="w-full p-2 border border-gray-300 rounded mb-2"
                         />
+                    {newMedia.type !== "text" && <input type="file" onChange={handleFileChange} className="block mb-2" />}
+                    {newMedia.file && <p className="mb-2">{newMedia.file.name}</p>}
                     <button
                         onClick={addMedia}
                         className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                    >Add Media</button>
+                    >
+                        Add Media
+                    </button>
+                    
                 </div>
                 
                 {answers.map((a, index) => (

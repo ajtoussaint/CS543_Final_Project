@@ -7,6 +7,10 @@ const mediaSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required:true
+    },
+    fileId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"uploads.files"
     }
 });
 
