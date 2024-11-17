@@ -9,7 +9,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 // uploads a file and returns the file ID
-router.post('/upload', upload.single('file'), (req, res) => {
+router.post('/file', upload.single('file'), (req, res) => {
     console.log("POST request to api/upload", req.file.originalname);
     if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
