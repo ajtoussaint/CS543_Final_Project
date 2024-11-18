@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import axiosInstance from "../modules/axiosInstance";
 
 const Root = () => {
     const [message, setMessage] = useState("message not yet loaded...");
-    const [questions, setQuestions] = useState([]); // State to store all questions
-    const [filteredQuestions, setFilteredQuestions] = useState([]); // State for filtered questions
-    const [searchQuery, setSearchQuery] = useState(""); // State for the search input
-    const [filterType, setFilterType] = useState("name"); // State to track filter type: 'name' or 'tag'
+    const [questions, setQuestions] = useState([]);
+    const [filteredQuestions, setFilteredQuestions] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filterType, setFilterType] = useState("name");
 
     useEffect(() => {
         const fetchData = async () => {
             console.log("Fetching users and questions...");
             try {
-                // Fetch users
                 const usersRes = await axiosInstance.get("data");
                 setMessage(
                     usersRes.data.map((user) => user.username).join(", ")
                 );
 
-                // Fetch questions
                 const questionsRes = await axiosInstance.get("/questions");
                 setQuestions(questionsRes.data);
-                setFilteredQuestions(questionsRes.data); // Show all questions initially
+                setFilteredQuestions(questionsRes.data);
             } catch (err) {
                 console.error("Error fetching data: ", err);
             }
@@ -30,10 +29,9 @@ const Root = () => {
         fetchData();
     }, []);
 
-    // Dynamically filter questions based on the selected filter type and search query
     useEffect(() => {
         if (searchQuery === "") {
-            setFilteredQuestions(questions); // Show all questions if search is empty
+            setFilteredQuestions(questions);
         } else {
             if (filterType === "name") {
                 setFilteredQuestions(
@@ -77,7 +75,6 @@ const Root = () => {
                     Questions:
                 </h2>
 
-                {/* Search and Filter Section */}
                 <div className="mb-6 flex space-x-4">
                     <select
                         value={filterType}
@@ -96,7 +93,6 @@ const Root = () => {
                     />
                 </div>
 
-                {/* Display Filtered Questions */}
                 <div className="text-left text-lg text-gray-800">
                     {filteredQuestions.length > 0 ? (
                         filteredQuestions.map((question, index) => (
@@ -104,24 +100,12 @@ const Root = () => {
                                 key={index}
                                 className="border p-4 mb-4 rounded-lg shadow-sm bg-gray-50"
                             >
-                                <h3 className="font-semibold">
-                                    Title: {question.title}
-                                </h3>
+                                <Link to={`/question/${question._id}`}>
+                                    <h3 className="font-semibold cursor-pointer text-blue-500 hover:underline">
+                                        Title: {question.title}
+                                    </h3>
+                                </Link>
                                 <p>Tags: {question.tags}</p>
-                                <div>
-                                    Answers:
-                                    <ul>
-                                        {question.answers.map((answer, idx) => (
-                                            <li key={idx}>
-                                                {answer.answerId}{" "}
-                                                {answer.answerId ===
-                                                question.correctAnswerId
-                                                    ? "(Correct)"
-                                                    : ""}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
                             </div>
                         ))
                     ) : (
