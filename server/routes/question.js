@@ -3,19 +3,24 @@ const router = express.Router();
 
 const Question = require("../models/Question.model");
 const Tag = require("../models/Tag.model");
+const Media = require("../models/Media.model");
 
 //create a new question from saving on the edit page
 router.post("/question/create", async (req, res) => {
     console.log("POST request to /question/create");
 
-    const { title, tags, answers, correctAnswerId } = req.body;
+    const { title, tags, answers, media, correctAnswerId } = req.body;
 
     if (!req.user) {
         console.log("You are not logged in!");
     } else {
         //convert list of answers to FKs
         let answerMap = answers.map((a, index) => {
-            return { answerId: a._id, order: (index + 1) }
+            return { answerId: a._id, order: (index) }
+        })
+
+        let mediaMap = media.map((m, index) => {
+            return {mediaId: m._id, order:(index)}
         })
 
         tagifyString(tags).then( (dbTags) => {
@@ -29,6 +34,7 @@ router.post("/question/create", async (req, res) => {
                 creatorId: req.user._id,
                 tags: qTags,
                 answers: answerMap,
+                media: mediaMap,
                 correctAnswerId: correctAnswerId,
             })
     
@@ -79,7 +85,7 @@ router.post("/question/update", async (req, res) => {
         const question = await Question.findById(id);
         if (question) {
             console.log("Found question to update: ", question);
-            //TGS: convert list of tags to new docs, create if not existing
+            //convert list of tags to new docs, create if not existing
             let tags = await tagifyString(req.body.tags)
             
             question.tags = tags.map(t => {
@@ -94,6 +100,7 @@ router.post("/question/update", async (req, res) => {
 
             //update the questions answers
             question.answers = req.body.answers.map((ans, i) => ({ answerId: ans._id, order: i }))
+            question.media = req.body.media.map((m, i) => ({ mediaId: m._id, order: i }))
             console.log("Answer references updated in question: ", question.answers);
             //save and return question
             question.save()
@@ -160,7 +167,7 @@ router.get("/questions", async (req, res) => {
     console.log("GET request to /questions");
     try {
         const questions = await Question.find();
-        //TGS: coalesce tag documents into a string  before returning the question
+        // coalesce tag documents into a string  before returning the question
         Promise.all(questions.map(async q => {
             const r = {
                 ...q.toObject(), 

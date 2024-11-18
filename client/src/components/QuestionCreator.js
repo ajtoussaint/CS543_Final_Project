@@ -15,7 +15,7 @@ const QuestionCreator = () => {
     const [answers, setAnswers] = useState([]);
     const [correct, setCorrect] = useState(); // id of the correct answer
 
-    const [newMediaType, setNewMediaType] = useState("text");
+    const [newMedia, setNewMedia] = useState({type:"text", title:"Title"});
     const [questionId, setQuestionId] = useState(qId);
     const [loading, setLoading] = useState(true);
 
@@ -37,7 +37,17 @@ const QuestionCreator = () => {
             setTags(q.tags);
             setCorrect(q.correctAnswerId);
 
-            Promise.all(
+            //calls to get all the media
+            await Promise.all(
+                q.media.map((m) => axiosInstance.get("/media/" + m.mediaId))
+            ).then((responses) => {
+                const data = responses.map((response) => response.data);
+                setMedia(data);
+            }).catch((err) => {
+                console.error("Some error getting media data: ", err);
+            })
+
+            await Promise.all(
                 q.answers.map((ans) => axiosInstance.get("/answer/" + ans.answerId))
             ).then((responses) => {
                 const data = responses.map((response) => response.data);
@@ -57,7 +67,36 @@ const QuestionCreator = () => {
 
     const addMedia = async (e) => {
         e.preventDefault();
-        console.log(newMediaType);
+        console.log("Adding media of type", newMedia.type);
+        let newMediaObj = {type: newMedia.type, title: newMedia.title}
+        //upload the file
+        if(newMedia.file && newMedia.type !== "text"){
+            console.log("Uploading file");
+            const formData = new FormData();
+            formData.append('file', newMedia.file);
+            const fileRes = await axiosInstance.post("/file", formData,{
+                headers: {
+                  'Content-Type': 'multipart/form-data'
+                }
+            });
+            newMediaObj.fileId = fileRes.data.fileId;
+        }
+
+        try{
+            const res = await axiosInstance.post("media/create", newMediaObj);
+            let mediaObject = res.data;
+            console.log("Media object after creating media on server: ", mediaObject);
+            //get request for the file
+            if(mediaObject.fileId){
+                const mediaRes = await axiosInstance.get("/file/" + mediaObject.fileId, { responseType: 'blob' });
+                const url = URL.createObjectURL(mediaRes.data);
+                mediaObject.url = url;
+            }
+            //add mediaObject.fileUrl =...
+            setMedia((prev) => [...prev, mediaObject])
+        }catch(err){
+            console.error(err);
+        }
     };
 
     const addAnswer = async (e) => {
@@ -66,7 +105,7 @@ const QuestionCreator = () => {
         try {
             const res = await axiosInstance.get("answer/create");
             let answerObject = res.data;
-            answerObject.unsaved = true;
+            answerObject.unsaved = true;//use this to delete if the question update is not saved
             setAnswers((prev) => [...prev, answerObject]);
             if (answers.length < 1) {
                 setCorrect(res.data._id);
@@ -85,8 +124,29 @@ const QuestionCreator = () => {
         );
     };
 
+    const updateNewMedia = (value, key) => {
+        let obj = {};
+        obj[key] = value;
+        setNewMedia((prev) =>{
+            return {...prev, ...obj}
+            }
+        );
+    }
+
+    const deleteMedia = async (id) => {
+        console.log("Delete media: ", id);
+        try{
+            await axiosInstance.post("media/delete", {id: id});
+            console.log("State of media before filter: ", media);
+            console.log("Id: ", id);
+            setMedia((prev) =>  prev.filter((m) => m._id !== id));
+        }catch(err){
+            console.error(err);
+        }
+    }
+
     const deleteAnswer = async (id) => {
-        console.log("Attempting to delete item: " + id);
+        console.log("Attempting to delete answer: " + id);
         try {
             await axiosInstance.post("answer/delete", { id: id });
             setAnswers((prev) => {
@@ -128,6 +188,7 @@ const QuestionCreator = () => {
             title: title,
             tags: tags,
             answers: answers,
+            media: media,
             correctAnswerId: correct,
         };
 
@@ -167,6 +228,10 @@ const QuestionCreator = () => {
         console.log("discard");
     };
 
+    const handleFileChange = (e) => {
+        updateNewMedia(e.target.files[0], "file");
+    }
+
     if (loading) {
         return <Loading />;
     }
@@ -196,12 +261,38 @@ const QuestionCreator = () => {
                     />
                 </div>
 
+                {media.map( (m) => {
+                    if(m.type === "text"){
+                        return (<div key={m._id} className="mb-4">
+                            {m.title}
+                            <button
+                            onClick={() => deleteMedia(m._id)}
+                            className="text-red-500 hover:text-red-700 text-sm mb-2"
+                        >Delete Media</button>
+                        </div>)
+                    }else{ //add other cases for each media type
+                        return (<div key={m._id}>
+                            <h3>{m.title}</h3>
+                            {m.url ? (
+                                <img src={m.url} alt="Downloaded" />
+                            ):(
+                                <p>No image</p>
+                            )
+                            }
+                            <button
+                            onClick={() => deleteMedia(m._id)}
+                            className="text-red-500 hover:text-red-700 text-sm mb-2"
+                        >Delete Media</button>
+                        </div>)
+                    }
+                })}
+                
                 <div className="mb-4">
                     <label className="block text-gray-700 font-bold mb-2">Select Media Type:</label>
                     <select
                         id="newMediaType"
-                        value={newMediaType}
-                        onChange={(e) => setNewMediaType(e.target.value)}
+                        value={newMedia.type}
+                        onChange={(e) => updateNewMedia(e.target.value, "type")}
                         className="w-full p-2 border border-gray-300 rounded"
                     >
                         <option value="text">Text</option>
@@ -209,10 +300,21 @@ const QuestionCreator = () => {
                         <option value="audio">Audio</option>
                         <option value="video">Video</option>
                     </select>
+                    <input 
+                            type="text"
+                            value={newMedia.title}
+                            onChange={(e) => updateNewMedia(e.target.value, "title")}
+                            className="w-full p-2 border border-gray-300 rounded mb-2"
+                        />
+                    {newMedia.type !== "text" && <input type="file" onChange={handleFileChange} className="block mb-2" />}
+                    {newMedia.file && <p className="mb-2">{newMedia.file.name}</p>}
                     <button
                         onClick={addMedia}
                         className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-                    >Add Media</button>
+                    >
+                        Add Media
+                    </button>
+                    
                 </div>
                 
                 {answers.map((a, index) => (
