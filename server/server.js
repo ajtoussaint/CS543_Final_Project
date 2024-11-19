@@ -52,6 +52,14 @@ app.use('/api', question);
 app.use('/api', media);
 app.use('/api',file);
 
+//test route
+const User = require("./models/User.model.js");
+app.get('/api/data', async (req, res) => {
+    const users = await User.find()
+    res.json(users);
+})
+
+
 
 const PORT = process.env.PORT || 5000
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
