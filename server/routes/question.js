@@ -3,7 +3,6 @@ const router = express.Router();
 
 const Question = require("../models/Question.model");
 const Tag = require("../models/Tag.model");
-const Media = require("../models/Media.model");
 
 //create a new question from saving on the edit page
 router.post("/question/create", async (req, res) => {
@@ -11,8 +10,9 @@ router.post("/question/create", async (req, res) => {
 
     const { title, tags, answers, media, correctAnswerId } = req.body;
 
-    if (!req.user) {
+    if (!req.user || !req.isAuthenticated()) {
         console.log("You are not logged in!");
+        return res.status(401).json({message: "User is not logged in"});
     } else {
         //convert list of answers to FKs
         let answerMap = answers.map((a, index) => {
@@ -81,44 +81,55 @@ router.get("/question/:id", async (req, res) => {
 router.post("/question/update", async (req, res) => {
     console.log("POST request to /question/update", req.body);
     const id = req.body._id;
-    try {
-        const question = await Question.findById(id);
-        if (question) {
-            console.log("Found question to update: ", question);
-            //convert list of tags to new docs, create if not existing
-            let tags = await tagifyString(req.body.tags)
-            
-            question.tags = tags.map(t => {
-                return {tagId: t._id}
-            });
-
-            console.log("Updated tags to be:", question.tags);
-            //update question based on request
-            ["title", "correctAnswerId"].forEach(k => {
-                question[k] = req.body[k];
-            });
-
-            //update the questions answers
-            question.answers = req.body.answers.map((ans, i) => ({ answerId: ans._id, order: i }))
-            question.media = req.body.media.map((m, i) => ({ mediaId: m._id, order: i }))
-            console.log("Answer references updated in question: ", question.answers);
-            //save and return question
-            question.save()
-                .then(() => {
-                    console.log("Question updated successfully: ", question);
-                    return res.status(200).json(question);
-                }).catch(err => {
-                    console.error("Error updating question: ", err);
-                    return res.sendStatus(500);
-                })
-        } else {
-            res.sendStatus(404);
+    if (!req.user || !req.isAuthenticated()) {
+        console.log("You are not logged in!");
+        res.status(401).json({message: "User is not logged in"});
+    }else{
+        try {
+            const question = await Question.findById(id);
+            if (question) {
+                console.log("Found question to update: ", question);
+                //check if user is authorized
+                if(question.creatorId !== req.user._id){
+                    console.log("User unauthorized to update question");
+                    return res.status(401).json({message:"You can only update questions you have created"});
+                }
+                //convert list of tags to new docs, create if not existing
+                let tags = await tagifyString(req.body.tags)
+                
+                question.tags = tags.map(t => {
+                    return {tagId: t._id}
+                });
+    
+                console.log("Updated tags to be:", question.tags);
+                //update question based on request
+                ["title", "correctAnswerId"].forEach(k => {
+                    question[k] = req.body[k];
+                });
+    
+                //update the questions answers
+                question.answers = req.body.answers.map((ans, i) => ({ answerId: ans._id, order: i }))
+                question.media = req.body.media.map((m, i) => ({ mediaId: m._id, order: i }))
+                console.log("Answer references updated in question: ", question.answers);
+                //save and return question
+                question.save()
+                    .then(() => {
+                        console.log("Question updated successfully: ", question);
+                        return res.status(200).json(question);
+                    }).catch(err => {
+                        console.error("Error updating question: ", err);
+                        return res.sendStatus(500);
+                    })
+            } else {
+                res.sendStatus(404);
+            }
+        } catch (err) {
+            console.error(err);
+            res.sendStatus(500);
         }
-    } catch (err) {
-        console.error(err);
-        res.sendStatus(500);
+    
     }
-
+    
 });
 
 async function tagifyString(tags){
