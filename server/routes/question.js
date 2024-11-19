@@ -90,7 +90,7 @@ router.post("/question/update", async (req, res) => {
             if (question) {
                 console.log("Found question to update: ", question);
                 //check if user is authorized
-                if(question.creatorId !== req.user._id){
+                if(!question.creatorId.equals(req.user._id)){
                     console.log("User unauthorized to update question");
                     return res.status(401).json({message:"You can only update questions you have created"});
                 }

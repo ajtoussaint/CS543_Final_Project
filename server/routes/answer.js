@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Answer = require("../models/Answer.model");
+const Question = require("../models/Question.model");
 
 router.get("/answer/create",  async (req, res) => {
     console.log("GET request to /answer/create");
@@ -50,9 +51,17 @@ router.post("/answer/delete", async (req, res) => {
     console.log("POST request to /answer/delete", req.body);
     if(!req.user){
         console.log("You are not logged in!");
+        return res.status(401).json({message: "You are not logged in"});
     }
-    //check that the user has authority to delete answers for this question
-        //TODO
+
+    const ans = await Answer.findById(req.body.id);
+    const q = await Question.findById(ans.questionId);
+
+    if(q && !q.creatorId.equals(req.user._id)){
+        console.log("User unauthorized to delete");
+        return res.status(401).json({message:"You can only delete answers you have created"});
+    }
+    
     try{
         const result = await Answer.findByIdAndDelete(req.body.id)
         if(result){
