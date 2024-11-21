@@ -1,10 +1,11 @@
 // QuestionPage.js
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../modules/axiosInstance";
 
 const QuestionPage = () => {
     const { id } = useParams(); // Get the question ID from the URL
+    const navigate = useNavigate();
     const [question, setQuestion] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -52,6 +53,10 @@ const QuestionPage = () => {
         }
     };
 
+    const handleEditQuestion = () => {
+        navigate(`/create/${id}`);
+    };
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
 
@@ -62,6 +67,12 @@ const QuestionPage = () => {
                 <p className="text-lg mb-4">
                     Tags: {Array.isArray(question.tags) ? question.tags.join(", ") : question.tags}
                 </p>
+                <button
+                    onClick={handleEditQuestion}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4"
+                >
+                    Edit Question
+                </button>
                 <div>
                     <h3 className="font-semibold mb-2">Answers:</h3>
                     <ul>
