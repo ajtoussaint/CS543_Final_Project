@@ -8,14 +8,31 @@ const QuestionPage = () => {
     const [question, setQuestion] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedAnswer, setSelectedAnswer] = useState(null);
+    const [isCorrect, setIsCorrect] = useState(null);
 
     useEffect(() => {
         const fetchQuestion = async () => {
             try {
                 const response = await axiosInstance.get(`/question/${id}`);
-                setQuestion(response.data);
+                const questionData = response.data;
+
+                // Fetch media data for the question
+                const mediaResponses = await Promise.all(
+                    questionData.media.map((m) => axiosInstance.get(`/media/${m.mediaId}`))
+                );
+                const mediaData = mediaResponses.map((res) => res.data);
+                questionData.media = mediaData;
+
+                // Fetch answer data for the question
+                const answerResponses = await Promise.all(
+                    questionData.answers.map((ans) => axiosInstance.get(`/answer/${ans.answerId}`))
+                );
+                const answerData = answerResponses.map((res) => res.data);
+                questionData.answers = answerData;
+
+                setQuestion(questionData);
                 setLoading(false);
-                console.log("You are on the question page.");
             } catch (err) {
                 console.error("Error fetching question: ", err);
                 setError("Could not fetch question data.");
@@ -26,6 +43,15 @@ const QuestionPage = () => {
         fetchQuestion();
     }, [id]);
 
+    const handleAnswerSelect = (answerId) => {
+        setSelectedAnswer(answerId);
+        if (question.correctAnswerId && answerId === question.correctAnswerId) {
+            setIsCorrect(true);
+        } else {
+            setIsCorrect(false);
+        }
+    };
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div>{error}</div>;
 
@@ -34,32 +60,54 @@ const QuestionPage = () => {
             <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-3xl font-bold mb-4">{question.title}</h2>
                 <p className="text-lg mb-4">
-                    Tags:{" "}
-                    {Array.isArray(question.tags)
-                        ? question.tags.join(", ")
-                        : question.tags}
+                    Tags: {Array.isArray(question.tags) ? question.tags.join(", ") : question.tags}
                 </p>
                 <div>
                     <h3 className="font-semibold mb-2">Answers:</h3>
                     <ul>
                         {question.answers && question.answers.length > 0 ? (
                             question.answers.map((answer, idx) => (
-                                <li key={idx} className="mb-2">
-                                    {answer.answerId
-                                        ? answer.answerId.toString()
-                                        : "No answer ID"}{" "}
-                                    {answer.answerId &&
-                                    question.correctAnswerId &&
-                                    answer.answerId.toString() ===
-                                        question.correctAnswerId.toString()
-                                        ? "(Correct)"
-                                        : ""}
+                                <li
+                                    key={idx}
+                                    className={`mb-2 p-2 border rounded cursor-pointer ${selectedAnswer === answer._id ? (isCorrect ? 'bg-green-200' : 'bg-red-200') : 'bg-gray-50'}`}
+                                    onClick={() => handleAnswerSelect(answer._id)}
+                                >
+                                    {answer.content}
                                 </li>
                             ))
                         ) : (
                             <li>No answers available.</li>
                         )}
                     </ul>
+                </div>
+                {selectedAnswer && (
+                    <div className="mt-4">
+                        {isCorrect ? (
+                            <p className="text-green-600 font-bold">Correct Answer!</p>
+                        ) : (
+                            <p className="text-red-600 font-bold">Incorrect Answer. Try Again!</p>
+                        )}
+                    </div>
+                )}
+                <div className="mt-6">
+                    <h3 className="font-semibold mb-2">Media:</h3>
+                    {question.media && question.media.length > 0 ? (
+                        question.media.map((m, idx) => (
+                            <div key={idx} className="mb-4">
+                                <h4 className="font-bold">{m.title}</h4>
+                                {m.type === "image" && m.fileId && (
+                                    <img
+                                        src={`/file/${m.fileId}`}
+                                        alt={m.title}
+                                        className="max-w-full h-auto mt-2 rounded"
+                                    />
+                                )}
+                                {/* Add handling for other media types if needed */}
+                            </div>
+                        ))
+                    ) : (
+                        <p>No media available.</p>
+                    )}
                 </div>
             </div>
         </div>
