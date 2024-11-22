@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../modules/axiosInstance';
 import { useUser } from './UserContext';
 
@@ -129,12 +129,7 @@ const Signup = () => {
                         type="submit"
                         className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-600 active:bg-blue-700 transition duration-200 ease-in-out"
                     >
-                        <Link
-                            to="/login"
-                            className=""
-                        >
                             Signup
-                        </Link>
                     </button>
                     <div className="m-4 text-red-500">{message}</div>
                 </form>
