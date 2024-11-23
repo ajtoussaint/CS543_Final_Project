@@ -7,6 +7,7 @@ router.post("/media/create", async (req, res) => {
     console.log("POST request to media/create", req.body);
     if(!req.user){
         console.log("You are not logged in!");
+        return res.status(401).json({message: "You are not logged in"});
     }
     const newMedia = new Media({
         ...req.body, creatorId: req.user._id
@@ -43,11 +44,12 @@ router.post("/media/delete", async (req, res) => {
     console.log("POST request to /media/delete", req.body);
     if(!req.user){
         console.log("Not logged in");
+        return res.status(401).json({message: "You are not logged in"});
     }
 
     try{
         const result = await Media.findByIdAndDelete(req.body.id);
-        if(result){
+        if(result && result.creatorId === req.user._id){
             console.log("Deleted good", result);
             res.sendStatus(200);
         }else{

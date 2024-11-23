@@ -2,8 +2,6 @@
 
 const express = require('express');//server util
 const mongoose = require('mongoose');//database util
-const testRouter = require('./routes/routerTest.js');
-const testDatabase = require('./routes/dataTest.js');
 const signup = require('./routes/signup.js');
 const login = require('./routes/login.js');
 const answer = require('./routes/answer.js');
@@ -48,13 +46,19 @@ mongoose.connect(MONGO_URI)
 login(app, MONGO_URI); //syntax is different because some app.use is applied
 
 //Routes
-app.use('/api', testRouter);
-app.use('/api', testDatabase);
 app.use('/api', signup);
 app.use('/api', answer);
 app.use('/api', question);
 app.use('/api', media);
 app.use('/api',file);
+
+//test route
+const User = require("./models/User.model.js");
+app.get('/api/data', async (req, res) => {
+    const users = await User.find()
+    res.json(users);
+})
+
 
 
 const PORT = process.env.PORT || 5000
