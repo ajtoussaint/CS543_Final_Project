@@ -19,32 +19,34 @@ const QuestionPage = () => {
             try {
                 const response = await axiosInstance.get(`/question/${id}`);
                 const questionData = response.data;
-
+    
                 // Fetch media data for the question
                 const mediaResponses = await Promise.all(
-                    questionData.media.map((m) =>
-                        axiosInstance.get(`/media/${m.mediaId}`)
-                    )
+                    questionData.media.map((m) => axiosInstance.get(`/media/${m.mediaId}`))
                 );
-                const mediaData = mediaResponses.map((res) => {
-                    const media = res.data;
-                    // Generate URL using fileId
-                    if (media.fileId) {
-                        media.url = `/file/${media.fileId}`;
-                    }
-                    return media;
-                });
-                questionData.media = mediaData;
-
+                const mediaData = mediaResponses.map((res) => res.data);
+                
+                // Download each media file and generate a local URL
+                const downloadedMedia = await Promise.all(
+                    mediaData.map(async (media) => {
+                        if (media.fileId) {
+                            const res = await axiosInstance.get(`/file/${media.fileId}`, { responseType: 'blob' });
+                            const url = URL.createObjectURL(res.data);
+                            return { ...media, url }; // Add the generated URL to the media object
+                        }
+                        return media;
+                    })
+                );
+    
+                questionData.media = downloadedMedia;
+    
                 // Fetch answer data for the question
                 const answerResponses = await Promise.all(
-                    questionData.answers.map((ans) =>
-                        axiosInstance.get(`/answer/${ans.answerId}`)
-                    )
+                    questionData.answers.map((ans) => axiosInstance.get(`/answer/${ans.answerId}`))
                 );
                 const answerData = answerResponses.map((res) => res.data);
                 questionData.answers = answerData;
-
+    
                 setQuestion(questionData);
                 setLoading(false);
             } catch (err) {
@@ -53,10 +55,10 @@ const QuestionPage = () => {
                 setLoading(false);
             }
         };
-
+    
         fetchQuestion();
     }, [id]);
-
+    
     const handleAnswerSelect = (answerId) => {
         setSelectedAnswer(answerId);
         if (question.correctAnswerId && answerId === question.correctAnswerId) {
@@ -93,6 +95,27 @@ const QuestionPage = () => {
                     </button>
                 )}
                 <div>
+                <div className="mt-6">
+                <h3 className="font-semibold mb-2">Media:</h3>
+                {question.media && question.media.length > 0 ? (
+                    question.media.map((m, idx) => (
+                        <div key={idx} className="mb-4">
+                            <h4 className="font-bold">{m.title}</h4>
+                            {m.type === "image" && m.url && (
+                                <img
+                                    src={m.url}
+                                    alt={m.title}
+                                    className="max-w-full h-auto mt-2 rounded"
+                                />
+                            )}
+                            {/* Add handling for other media types if needed */}
+                        </div>
+                    ))
+                ) : (
+                    <p>No media available.</p>
+                )}
+            </div>
+
                     <h3 className="font-semibold mb-2">Answers:</h3>
                     <ul>
                         {question.answers && question.answers.length > 0 ? (
@@ -131,26 +154,8 @@ const QuestionPage = () => {
                         )}
                     </div>
                 )}
-                <div className="mt-6">
-                    <h3 className="font-semibold mb-2">Media:</h3>
-                    {question.media && question.media.length > 0 ? (
-                        question.media.map((m, idx) => (
-                            <div key={idx} className="mb-4">
-                                <h4 className="font-bold">{m.title}</h4>
-                                {m.type === "image" && m.url && (
-                                    <img
-                                        src={m.url}
-                                        alt={m.title}
-                                        className="max-w-full h-auto mt-2 rounded"
-                                    />
-                                )}
-                                {/* Add handling for other media types if needed */}
-                            </div>
-                        ))
-                    ) : (
-                        <p>No media available.</p>
-                    )}
-                </div>
+                
+
             </div>
         </div>
     );
