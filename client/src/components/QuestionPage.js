@@ -22,14 +22,25 @@ const QuestionPage = () => {
 
                 // Fetch media data for the question
                 const mediaResponses = await Promise.all(
-                    questionData.media.map((m) => axiosInstance.get(`/media/${m.mediaId}`))
+                    questionData.media.map((m) =>
+                        axiosInstance.get(`/media/${m.mediaId}`)
+                    )
                 );
-                const mediaData = mediaResponses.map((res) => res.data);
+                const mediaData = mediaResponses.map((res) => {
+                    const media = res.data;
+                    // Generate URL using fileId
+                    if (media.fileId) {
+                        media.url = `/file/${media.fileId}`;
+                    }
+                    return media;
+                });
                 questionData.media = mediaData;
 
                 // Fetch answer data for the question
                 const answerResponses = await Promise.all(
-                    questionData.answers.map((ans) => axiosInstance.get(`/answer/${ans.answerId}`))
+                    questionData.answers.map((ans) =>
+                        axiosInstance.get(`/answer/${ans.answerId}`)
+                    )
                 );
                 const answerData = answerResponses.map((res) => res.data);
                 questionData.answers = answerData;
@@ -67,7 +78,10 @@ const QuestionPage = () => {
             <div className="w-full max-w-4xl bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-3xl font-bold mb-4">{question.title}</h2>
                 <p className="text-lg mb-4">
-                    Tags: {Array.isArray(question.tags) ? question.tags.join(", ") : question.tags}
+                    Tags:{" "}
+                    {Array.isArray(question.tags)
+                        ? question.tags.join(", ")
+                        : question.tags}
                 </p>
                 {/* Conditionally render the Edit button if the logged-in user is the creator */}
                 {user && user._id === question.creatorId && (
@@ -85,8 +99,16 @@ const QuestionPage = () => {
                             question.answers.map((answer, idx) => (
                                 <li
                                     key={idx}
-                                    className={`mb-2 p-2 border rounded cursor-pointer ${selectedAnswer === answer._id ? (isCorrect ? 'bg-green-200' : 'bg-red-200') : 'bg-gray-50'}`}
-                                    onClick={() => handleAnswerSelect(answer._id)}
+                                    className={`mb-2 p-2 border rounded cursor-pointer ${
+                                        selectedAnswer === answer._id
+                                            ? isCorrect
+                                                ? "bg-green-200"
+                                                : "bg-red-200"
+                                            : "bg-gray-50"
+                                    }`}
+                                    onClick={() =>
+                                        handleAnswerSelect(answer._id)
+                                    }
                                 >
                                     {answer.content}
                                 </li>
@@ -99,9 +121,13 @@ const QuestionPage = () => {
                 {selectedAnswer && (
                     <div className="mt-4">
                         {isCorrect ? (
-                            <p className="text-green-600 font-bold">Correct Answer!</p>
+                            <p className="text-green-600 font-bold">
+                                Correct Answer!
+                            </p>
                         ) : (
-                            <p className="text-red-600 font-bold">Incorrect Answer. Try Again!</p>
+                            <p className="text-red-600 font-bold">
+                                Incorrect Answer. Try Again!
+                            </p>
                         )}
                     </div>
                 )}
@@ -111,9 +137,9 @@ const QuestionPage = () => {
                         question.media.map((m, idx) => (
                             <div key={idx} className="mb-4">
                                 <h4 className="font-bold">{m.title}</h4>
-                                {m.type === "image" && m.fileId && (
+                                {m.type === "image" && m.url && (
                                     <img
-                                        src={`/file/${m.fileId}`}
+                                        src={m.url}
                                         alt={m.title}
                                         className="max-w-full h-auto mt-2 rounded"
                                     />
