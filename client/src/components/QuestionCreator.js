@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
-import axiosInstance from '../modules/axiosInstance';
+import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import axiosInstance from "../modules/axiosInstance";
 
 import Loading from "./Loading";
 
@@ -15,7 +15,7 @@ const QuestionCreator = () => {
     const [answers, setAnswers] = useState([]);
     const [correct, setCorrect] = useState(); // id of the correct answer
 
-    const [newMedia, setNewMedia] = useState({type:"text", title:"Title"});
+    const [newMedia, setNewMedia] = useState({ type: "text", title: "Title" });
     const [questionId, setQuestionId] = useState(qId);
     const [loading, setLoading] = useState(true);
 
@@ -40,22 +40,28 @@ const QuestionCreator = () => {
             //calls to get all the media
             await Promise.all(
                 q.media.map((m) => axiosInstance.get("/media/" + m.mediaId))
-            ).then((responses) => {
-                const data = responses.map((response) => response.data);
-                setMedia(data);
-            }).catch((err) => {
-                console.error("Some error getting media data: ", err);
-            })
+            )
+                .then((responses) => {
+                    const data = responses.map((response) => response.data);
+                    setMedia(data);
+                })
+                .catch((err) => {
+                    console.error("Some error getting media data: ", err);
+                });
 
             await Promise.all(
-                q.answers.map((ans) => axiosInstance.get("/answer/" + ans.answerId))
-            ).then((responses) => {
-                const data = responses.map((response) => response.data);
-                setAnswers(data);
-                console.log("Got all answers and updated", data);
-            }).catch((err) => {
-                console.error("Some error getting answer data: ", err);
-            });
+                q.answers.map((ans) =>
+                    axiosInstance.get("/answer/" + ans.answerId)
+                )
+            )
+                .then((responses) => {
+                    const data = responses.map((response) => response.data);
+                    setAnswers(data);
+                    console.log("Got all answers and updated", data);
+                })
+                .catch((err) => {
+                    console.error("Some error getting answer data: ", err);
+                });
         }
 
         if (questionId) {
@@ -68,33 +74,39 @@ const QuestionCreator = () => {
     const addMedia = async (e) => {
         e.preventDefault();
         console.log("Adding media of type", newMedia.type);
-        let newMediaObj = {type: newMedia.type, title: newMedia.title}
+        let newMediaObj = { type: newMedia.type, title: newMedia.title };
         //upload the file
-        if(newMedia.file && newMedia.type !== "text"){
+        if (newMedia.file && newMedia.type !== "text") {
             console.log("Uploading file");
             const formData = new FormData();
-            formData.append('file', newMedia.file);
-            const fileRes = await axiosInstance.post("/file", formData,{
+            formData.append("file", newMedia.file);
+            const fileRes = await axiosInstance.post("/file", formData, {
                 headers: {
-                  'Content-Type': 'multipart/form-data'
-                }
+                    "Content-Type": "multipart/form-data",
+                },
             });
             newMediaObj.fileId = fileRes.data.fileId;
         }
 
-        try{
+        try {
             const res = await axiosInstance.post("media/create", newMediaObj);
             let mediaObject = res.data;
-            console.log("Media object after creating media on server: ", mediaObject);
+            console.log(
+                "Media object after creating media on server: ",
+                mediaObject
+            );
             //get request for the file
-            if(mediaObject.fileId){
-                const mediaRes = await axiosInstance.get("/file/" + mediaObject.fileId, { responseType: 'blob' });
+            if (mediaObject.fileId) {
+                const mediaRes = await axiosInstance.get(
+                    "/file/" + mediaObject.fileId,
+                    { responseType: "blob" }
+                );
                 const url = URL.createObjectURL(mediaRes.data);
                 mediaObject.url = url;
             }
             //add mediaObject.fileUrl =...
-            setMedia((prev) => [...prev, mediaObject])
-        }catch(err){
+            setMedia((prev) => [...prev, mediaObject]);
+        } catch (err) {
             console.error(err);
         }
     };
@@ -105,7 +117,7 @@ const QuestionCreator = () => {
         try {
             const res = await axiosInstance.get("answer/create");
             let answerObject = res.data;
-            answerObject.unsaved = true;//use this to delete if the question update is not saved
+            answerObject.unsaved = true; //use this to delete if the question update is not saved
             setAnswers((prev) => [...prev, answerObject]);
             if (answers.length < 1) {
                 setCorrect(res.data._id);
@@ -127,23 +139,22 @@ const QuestionCreator = () => {
     const updateNewMedia = (value, key) => {
         let obj = {};
         obj[key] = value;
-        setNewMedia((prev) =>{
-            return {...prev, ...obj}
-            }
-        );
-    }
+        setNewMedia((prev) => {
+            return { ...prev, ...obj };
+        });
+    };
 
     const deleteMedia = async (id) => {
         console.log("Delete media: ", id);
-        try{
-            await axiosInstance.post("media/delete", {id: id});
+        try {
+            await axiosInstance.post("media/delete", { id: id });
             console.log("State of media before filter: ", media);
             console.log("Id: ", id);
-            setMedia((prev) =>  prev.filter((m) => m._id !== id));
-        }catch(err){
+            setMedia((prev) => prev.filter((m) => m._id !== id));
+        } catch (err) {
             console.error(err);
         }
-    }
+    };
 
     const deleteAnswer = async (id) => {
         console.log("Attempting to delete answer: " + id);
@@ -196,28 +207,45 @@ const QuestionCreator = () => {
             try {
                 console.log("Updating existing question", questionObject);
                 questionObject._id = questionId;
-                const res = await axiosInstance.post("question/update", questionObject);
+                const res = await axiosInstance.post(
+                    "question/update",
+                    questionObject
+                );
                 Promise.all(
-                    answers.map((ans) => postAnswerUpdate({ ...ans, questionId: res.data._id }))
-                ).then(() => {
-                    if (exit) nav("/");
-                }).catch((err) => {
-                    console.error("Error in saving all answers: ", err);
-                });
+                    answers.map((ans) =>
+                        postAnswerUpdate({ ...ans, questionId: res.data._id })
+                    )
+                )
+                    .then(() => {
+                        if (exit) nav("/");
+                    })
+                    .catch((err) => {
+                        console.error("Error in saving all answers: ", err);
+                    });
             } catch (err) {
                 console.error(err);
             }
         } else {
             try {
-                const createdQuestion = await axiosInstance.post("question/create", questionObject);
+                const createdQuestion = await axiosInstance.post(
+                    "question/create",
+                    questionObject
+                );
                 setQuestionId(createdQuestion.data._id);
                 Promise.all(
-                    answers.map((ans) => postAnswerUpdate({ ...ans, questionId: createdQuestion.data._id }))
-                ).then(() => {
-                    if (exit) nav("/");
-                }).catch((err) => {
-                    console.error("Error in saving all answers: ", err);
-                });
+                    answers.map((ans) =>
+                        postAnswerUpdate({
+                            ...ans,
+                            questionId: createdQuestion.data._id,
+                        })
+                    )
+                )
+                    .then(() => {
+                        if (exit) nav("/");
+                    })
+                    .catch((err) => {
+                        console.error("Error in saving all answers: ", err);
+                    });
             } catch (err) {
                 console.error(err);
             }
@@ -230,7 +258,7 @@ const QuestionCreator = () => {
 
     const handleFileChange = (e) => {
         updateNewMedia(e.target.files[0], "file");
-    }
+    };
 
     if (loading) {
         return <Loading />;
@@ -239,21 +267,27 @@ const QuestionCreator = () => {
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100 p-6">
             <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg p-6">
-                <h1 className="text-2xl font-semibold text-center mb-6">Question Creator</h1>
-                
+                <h1 className="text-2xl font-semibold text-center mb-6">
+                    Question Creator
+                </h1>
+
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-bold mb-2">Title:</label>
-                    <input 
+                    <label className="block text-gray-700 font-bold mb-2">
+                        Title:
+                    </label>
+                    <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded"
                     />
                 </div>
-                
+
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-bold mb-2">Tags:</label>
-                    <input 
+                    <label className="block text-gray-700 font-bold mb-2">
+                        Tags:
+                    </label>
+                    <input
                         type="text"
                         value={tags}
                         onChange={(e) => setTags(e.target.value)}
@@ -261,34 +295,44 @@ const QuestionCreator = () => {
                     />
                 </div>
 
-                {media.map( (m) => {
-                    if(m.type === "text"){
-                        return (<div key={m._id} className="mb-4">
-                            {m.title}
-                            <button
-                            onClick={() => deleteMedia(m._id)}
-                            className="text-red-500 hover:text-red-700 text-sm mb-2"
-                        >Delete Media</button>
-                        </div>)
-                    }else{ //add other cases for each media type
-                        return (<div key={m._id}>
-                            <h3>{m.title}</h3>
-                            {m.url ? (
-                                <img src={m.url} alt="Downloaded" />
-                            ):(
-                                <p>No image</p>
-                            )
-                            }
-                            <button
-                            onClick={() => deleteMedia(m._id)}
-                            className="text-red-500 hover:text-red-700 text-sm mb-2"
-                        >Delete Media</button>
-                        </div>)
+                {media.map((m) => {
+                    if (m.type === "text") {
+                        return (
+                            <div key={m._id} className="mb-4">
+                                {m.title}
+                                <button
+                                    onClick={() => deleteMedia(m._id)}
+                                    className="text-red-500 hover:text-red-700 text-sm mb-2"
+                                >
+                                    Delete Media
+                                </button>
+                            </div>
+                        );
+                    } else {
+                        //add other cases for each media type
+                        return (
+                            <div key={m._id}>
+                                <h3>{m.title}</h3>
+                                {m.url ? (
+                                    <img src={m.url} alt="Downloaded" />
+                                ) : (
+                                    <p>No image</p>
+                                )}
+                                <button
+                                    onClick={() => deleteMedia(m._id)}
+                                    className="text-red-500 hover:text-red-700 text-sm mb-2"
+                                >
+                                    Delete Media
+                                </button>
+                            </div>
+                        );
                     }
                 })}
-                
+
                 <div className="mb-4">
-                    <label className="block text-gray-700 font-bold mb-2">Select Media Type:</label>
+                    <label className="block text-gray-700 font-bold mb-2">
+                        Select Media Type:
+                    </label>
                     <select
                         id="newMediaType"
                         value={newMedia.type}
@@ -300,44 +344,64 @@ const QuestionCreator = () => {
                         <option value="audio">Audio</option>
                         <option value="video">Video</option>
                     </select>
-                    <input 
-                            type="text"
-                            value={newMedia.title}
-                            onChange={(e) => updateNewMedia(e.target.value, "title")}
-                            className="w-full p-2 border border-gray-300 rounded mb-2"
+                    <input
+                        type="text"
+                        value={newMedia.title}
+                        onChange={(e) =>
+                            updateNewMedia(e.target.value, "title")
+                        }
+                        className="w-full p-2 border border-gray-300 rounded mb-2"
+                    />
+                    {newMedia.type !== "text" && (
+                        <input
+                            type="file"
+                            onChange={handleFileChange}
+                            className="block mb-2"
                         />
-                    {newMedia.type !== "text" && <input type="file" onChange={handleFileChange} className="block mb-2" />}
-                    {newMedia.file && <p className="mb-2">{newMedia.file.name}</p>}
+                    )}
+                    {newMedia.file && (
+                        <p className="mb-2">{newMedia.file.name}</p>
+                    )}
                     <button
                         onClick={addMedia}
                         className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
                     >
                         Add Media
                     </button>
-                    
                 </div>
-                
+
                 {answers.map((a, index) => (
-                    <div key={index} className="border border-gray-300 rounded p-4 mb-4">
+                    <div
+                        key={index}
+                        className="border border-gray-300 rounded p-4 mb-4"
+                    >
                         <h3 className="font-semibold">Answer {index + 1}</h3>
-                        <input 
+                        <input
                             type="text"
                             value={a.content}
-                            onChange={(e) => updateAnswer(a._id, e.target.value)}
+                            onChange={(e) =>
+                                updateAnswer(a._id, e.target.value)
+                            }
                             className="w-full p-2 border border-gray-300 rounded mb-2"
                         />
                         <button
                             onClick={() => deleteAnswer(a._id)}
                             className="text-red-500 hover:text-red-700 text-sm mb-2"
-                        >Delete Answer</button>
+                        >
+                            Delete Answer
+                        </button>
                         <div className="flex items-center space-x-2">
-                            <input 
+                            <input
                                 type="radio"
                                 checked={a._id === correct}
                                 onChange={() => setCorrect(a._id)}
                                 className="text-green-500"
                             />
-                            <label className="text-sm">{a._id === correct ? "Correct Answer" : "Mark as Correct"}</label>
+                            <label className="text-sm">
+                                {a._id === correct
+                                    ? "Correct Answer"
+                                    : "Mark as Correct"}
+                            </label>
                         </div>
                     </div>
                 ))}
@@ -345,21 +409,29 @@ const QuestionCreator = () => {
                 <button
                     onClick={addAnswer}
                     className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mb-4"
-                >Add Answer</button>
-                
+                >
+                    Add Answer
+                </button>
+
                 <div className="flex justify-between">
                     <button
                         onClick={() => saveChanges(false)}
                         className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-                    >Save</button>
+                    >
+                        Save
+                    </button>
                     <button
                         onClick={() => saveChanges(true)}
                         className="bg-green-800 hover:bg-green-600 text-white font-bold py-2 px-4 rounded"
-                    >Save and Exit</button>
+                    >
+                        Save and Exit
+                    </button>
                     <button
                         onClick={discardChanges}
                         className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
-                    >Discard Changes</button>
+                    >
+                        Discard Changes
+                    </button>
                 </div>
             </div>
         </div>
